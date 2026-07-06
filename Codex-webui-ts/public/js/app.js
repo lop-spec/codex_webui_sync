@@ -3984,7 +3984,7 @@ const CLIENT_BUILD = '20260706-project-window';
               <button type="button" class="workspace-root-button" aria-expanded="${expanded ? 'true' : 'false'}" title="${escapeAttr(p.workdir)}">
                 <span class="workspace-root-chevron" aria-hidden="true">${expanded ? '⌄' : '›'}</span>
                 <span class="workspace-folder-icon" aria-hidden="true">${FOLDER_BUTTON_SVG}</span>
-                <span class="thread-label">${escapeHtml(name)}</span>
+                <span class="thread-label workspace-root-name">${escapeHtml(name)}</span>
                 <span class="workspace-root-meta">${threads.length ? `${threads.length} 条` : '空'}</span>
               </button>
               <div class="workspace-root-actions">
