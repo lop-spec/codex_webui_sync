@@ -2404,7 +2404,7 @@
       .recycle-restore-filter {
         min-width: 0;
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr) auto auto;
         align-items: center;
         gap: 8px;
         margin-top: 10px;
@@ -2415,13 +2415,31 @@
         padding: 8px 10px;
         font-size: 12px;
       }
-      .recycle-restore-filter input {
+      .recycle-restore-filter-field {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 8px;
+      }
+      .recycle-restore-filter-range {
+        grid-template-columns: auto auto;
+      }
+      .recycle-restore-filter input,
+      .recycle-restore-filter select {
         min-width: 0;
         border: 0;
         outline: 0;
         background: transparent;
         color: var(--text);
         font: inherit;
+      }
+      .recycle-restore-filter select {
+        min-height: 28px;
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        background: var(--surface-soft);
+        padding: 3px 7px;
       }
       .recycle-restore-filter input::placeholder {
         color: var(--text-muted);
@@ -3795,6 +3813,13 @@
         }
       }
       @media (max-width: 700px) {
+        .recycle-restore-filter {
+          grid-template-columns: 1fr;
+          align-items: stretch;
+        }
+        .recycle-restore-filter-range {
+          justify-content: start;
+        }
         .composer-zone {
           padding: 0 10px 10px;
         }
