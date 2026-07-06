@@ -3492,6 +3492,131 @@ const CLIENT_BUILD = '20260706-transfer-merge';
         render();
         exposeDebugState();
       }
+      function removeRecycleRestoreDialog() {
+        document.getElementById('recycleRestoreModal')?.remove();
+        exposeDebugState();
+      }
+      function recycleRestoreTime(item) {
+        return Number(item?.sessionTime || item?.mtimeMs || 0) || Date.now();
+      }
+      function renderRecycleRestoreItems(state) {
+        if (state.loading) {
+          return '<div class="recycle-restore-empty">正在读取 Codex_RECYCLE...</div>';
+        }
+        if (state.error) {
+          return `<div class="recycle-restore-error">${escapeHtml(state.error)}</div>`;
+        }
+        if (!state.items.length) {
+          return '<div class="recycle-restore-empty">近 1 天没有可恢复的历史对话</div>';
+        }
+        return state.items.map((item) => {
+          const restoring = state.restoringPath && normalizeSessionPath(state.restoringPath) === normalizeSessionPath(item.recycledPath);
+          return `
+            <article class="recycle-restore-item">
+              <div class="recycle-restore-copy">
+                <div class="recycle-restore-title">${escapeHtml(item.title || item.name || '历史对话')}</div>
+                <div class="recycle-restore-summary">${escapeHtml(item.summary || '未提取到最新回复')}</div>
+                <div class="recycle-restore-meta">
+                  <span>${escapeHtml(relativeTime(recycleRestoreTime(item)))}</span>
+                  <span>${escapeHtml(item.bucket || '')}</span>
+                  <span title="${escapeAttr(item.recycledPath || '')}">${escapeHtml(item.name || '')}</span>
+                </div>
+              </div>
+              <button class="primary recycle-restore-action" data-action="restore-recycled-session" data-path="${escapeAttr(item.recycledPath || '')}" ${restoring ? 'disabled' : ''}>${restoring ? '恢复中...' : '恢复'}</button>
+            </article>`;
+        }).join('');
+      }
+      function renderRecycleRestoreDialog(overlay, state) {
+        overlay.innerHTML = `
+          <div class="dialog recycle-restore-dialog" role="dialog" aria-modal="true" aria-label="恢复历史对话">
+            <div class="dialog-head">
+              <div>
+                <strong>恢复历史对话</strong>
+                <div class="recycle-restore-headline">默认读取近 1 天 Codex_RECYCLE，并恢复到历史对话项目</div>
+              </div>
+              <button class="icon-btn" data-action="close-recycle-restore" aria-label="关闭">×</button>
+            </div>
+            <div class="dialog-body">
+              <div class="recycle-restore-summary-card">
+                <span>目标项目</span>
+                <strong>${escapeHtml(state.historyProject?.name || '历史对话')}</strong>
+                <small title="${escapeAttr(state.historyProject?.path || '')}">${escapeHtml(state.historyProject?.path || '等待服务端创建')}</small>
+              </div>
+              <div class="recycle-restore-list">${renderRecycleRestoreItems(state)}</div>
+            </div>
+            <div class="dialog-foot">
+              <button class="ghost-btn" data-action="refresh-recycle-restore" ${state.loading ? 'disabled' : ''}>刷新</button>
+              <button class="ghost-btn" data-action="close-recycle-restore">关闭</button>
+            </div>
+          </div>`;
+        exposeDebugState();
+      }
+      async function loadRecycleRestoreCandidates(state, overlay) {
+        state.loading = true;
+        state.error = '';
+        renderRecycleRestoreDialog(overlay, state);
+        try {
+          const response = await fetch('/session/recycle-candidates?days=1', { cache: 'no-store' });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || data.ok === false) throw new Error(data.error || `HTTP ${response.status}`);
+          state.items = Array.isArray(data.items) ? data.items : [];
+          state.historyProject = data.historyProject || state.historyProject;
+        } catch (error) {
+          state.error = `读取回收区失败：${error.message || error}`;
+        } finally {
+          state.loading = false;
+          renderRecycleRestoreDialog(overlay, state);
+        }
+      }
+      async function restoreRecycledSessionFromDialog(state, overlay, recycledPath) {
+        const target = state.items.find((item) => sameSessionPath(item.recycledPath, recycledPath));
+        if (!target || state.restoringPath) return;
+        state.restoringPath = target.recycledPath;
+        state.error = '';
+        renderRecycleRestoreDialog(overlay, state);
+        try {
+          const response = await fetch('/session/restore', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ recycledPath: target.recycledPath }) });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || data.ok === false) throw new Error(data.error || `HTTP ${response.status}`);
+          state.historyProject = data.historyProject || state.historyProject;
+          state.items = state.items.filter((item) => !sameSessionPath(item.recycledPath, target.recycledPath));
+          addSystem(`已恢复到历史对话：${target.title || target.name || '历史对话'}`);
+          await Promise.all([loadSessions(), loadProjects()]);
+        } catch (error) {
+          state.error = `恢复失败：${error.message || error}`;
+        } finally {
+          state.restoringPath = '';
+          renderRecycleRestoreDialog(overlay, state);
+        }
+      }
+      function openRecycleRestoreDialog() {
+        removeRecycleRestoreDialog();
+        const overlay = document.createElement('div');
+        overlay.className = 'modal open recycle-restore-modal';
+        overlay.id = 'recycleRestoreModal';
+        document.body.appendChild(overlay);
+        const state = { loading: true, error: '', items: [], historyProject: null, restoringPath: '' };
+        overlay.addEventListener('click', (event) => {
+          if (event.target === overlay) removeRecycleRestoreDialog();
+        });
+        overlay.addEventListener('click', async (event) => {
+          const actionTarget = event.target && event.target.closest ? event.target.closest('[data-action]') : null;
+          const action = actionTarget?.getAttribute('data-action') || '';
+          if (!action) return;
+          if (action === 'close-recycle-restore') {
+            removeRecycleRestoreDialog();
+            return;
+          }
+          if (action === 'refresh-recycle-restore') {
+            await loadRecycleRestoreCandidates(state, overlay);
+            return;
+          }
+          if (action === 'restore-recycled-session') {
+            await restoreRecycledSessionFromDialog(state, overlay, actionTarget.getAttribute('data-path') || '');
+          }
+        });
+        loadRecycleRestoreCandidates(state, overlay);
+      }
       function showWorkspaceRootMenu(x, y, project) {
         closeContextMenu();
         const menu = document.createElement('div');
