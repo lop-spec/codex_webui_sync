@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>Codex P2P</title>
+  <link rel="stylesheet" href="/css/p2p-phone.css?v=20260706-p2p-attach1">
+</head>
+<body>
+  <div id="sidebarBackdrop" class="drawer-backdrop" hidden></div>
+  <div class="p2p-shell">
+    <aside id="sessionDrawer" class="session-drawer" aria-label="会话列表">
+      <div class="drawer-head">
+        <div class="drawer-title">
+          <strong>Codex P2P</strong>
+          <span id="sessionCount">0 条会话</span>
+        </div>
+        <button id="closeDrawer" class="icon-btn drawer-close" type="button" aria-label="关闭会话列表">&times;</button>
+      </div>
+      <label class="search-box" for="sessionSearch">
+        <span aria-hidden="true">&#8981;</span>
+        <input id="sessionSearch" type="search" autocomplete="off" placeholder="搜索会话或项目">
+      </label>
+      <div id="sessionList" class="session-list" role="list"></div>
+      <div class="drawer-foot">
+        <span id="workdir" title="">等待本机项目</span>
+      </div>
+    </aside>
+
+    <section class="chat-surface" aria-label="P2P 对话">
+      <header class="topbar">
+        <button id="drawerToggle" class="icon-btn mobile-only" type="button" aria-label="打开会话列表">&#9776;</button>
+        <div class="thread-state">
+          <span id="dot" class="status-dot" aria-hidden="true"></span>
+          <div class="thread-copy">
+            <strong id="threadTitle">Codex P2P</strong>
+            <span id="status">准备连接</span>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button id="reconnect" class="ghost-btn" type="button"><span class="label-text">重连</span><span class="mobile-glyph" aria-hidden="true">R</span></button>
+          <button id="transferToggle" class="ghost-btn" type="button" disabled><span class="label-text">文件</span><span class="mobile-glyph" aria-hidden="true">⇅</span></button>
+          <button id="newChat" class="ghost-btn" type="button" disabled><span class="label-text">新会话</span><span class="mobile-glyph" aria-hidden="true">+</span></button>
+        </div>
+      </header>
+
+      <div class="status-strip" aria-live="polite">
+        <span id="peerState">信令待连接</span>
+        <span id="queueState" hidden></span>
+      </div>
+
+      <main id="messageScroll" class="message-scroll">
+        <section id="emptyState" class="empty-state">
+          <strong>本机 Codex</strong>
+          <span>连接后可直接继续当前会话</span>
+        </section>
+        <div id="messages" class="messages" aria-live="polite"></div>
+      </main>
+
+      <section id="transferPanel" class="transfer-panel" hidden aria-label="文件传输">
+        <div class="transfer-head">
+          <div class="transfer-title">
+            <strong>文件传输</strong>
+            <span id="transferStatus">等待连接</span>
+          </div>
+          <label class="transfer-toggle">
+            <input id="transferAutoDownload" type="checkbox">
+            <span>自动下载</span>
+          </label>
+          <button id="transferRefresh" class="icon-btn" type="button" aria-label="刷新文件传输">↻</button>
+          <button id="transferClose" class="icon-btn" type="button" aria-label="关闭文件传输">&times;</button>
+        </div>
+        <div class="transfer-body">
+          <div id="transferConversation" class="transfer-conversation" aria-live="polite"></div>
+          <input id="transferFilePicker" type="file" multiple hidden>
+          <button id="transferDropZone" class="transfer-drop-zone" type="button">
+            <span aria-hidden="true">＋</span>
+            <strong>选择文件</strong>
+            <small>支持多选，优先 storage.to，失败自动走本机链路</small>
+          </button>
+          <div id="transferQueue" class="transfer-queue" aria-live="polite"></div>
+          <div class="transfer-text-row">
+            <textarea id="transferTextInput" rows="1" placeholder="发送文字" autocomplete="off"></textarea>
+            <button id="transferSendText" class="ghost-btn" type="button" disabled>发送</button>
+          </div>
+          <button id="transferUploadFiles" class="transfer-upload" type="button" disabled>发送文件</button>
+        </div>
+      </section>
+
+      <section id="queuePanel" class="queue-panel" hidden aria-label="排队消息"></section>
+
+      <footer class="composer">
+        <input id="chatFilePicker" type="file" multiple hidden>
+        <div id="attachmentTray" class="chat-attachment-tray" hidden aria-live="polite"></div>
+        <div class="composer-row">
+          <button id="attachFiles" class="composer-attach" type="button" aria-label="添加图片或文件" title="添加图片或文件">
+            <span aria-hidden="true">+</span>
+          </button>
+          <textarea id="text" rows="1" placeholder="输入消息" autocomplete="off" enterkeyhint="send"></textarea>
+          <button id="send" class="send-btn" type="button" aria-label="发送" disabled>
+            <span aria-hidden="true">&#8593;</span>
+          </button>
+        </div>
+      </footer>
+
+      <div id="toastViewport" class="toast-viewport" aria-live="polite"></div>
+    </section>
+  </div>
+  <script src="/js/p2p-phone.js?v=20260706-p2p-attach1"></script>
+  <script src="/js/p2p-transfer.js?v=20260706-p2p-attach1"></script>
+</body>
+</html>
