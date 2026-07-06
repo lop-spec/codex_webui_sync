@@ -20,6 +20,8 @@ const LOG_DIR = path.join(APP_DIR, 'logs');
 const CODEX_LAUNCH = resolveCodexLaunch();
 const BACKEND_MODE = String(process.env.CODEX_WEBUI_BACKEND || (process.env.CODEX_CMD ? 'exec' : 'app-server')).toLowerCase();
 const APP_SERVER_URL = process.env.CODEX_APP_SERVER_URL || DEFAULT_APP_SERVER_URL;
+const GUIDANCE_DEBOUNCE_MS = Math.max(0, Number(process.env.CODEX_GUIDANCE_DEBOUNCE_MS || 500));
+const GUIDANCE_STEER_TIMEOUT_MS = Math.max(500, Number(process.env.CODEX_GUIDANCE_STEER_TIMEOUT_MS || 1500));
 
 interface InputAttachment {
   kind: 'image';
@@ -38,7 +40,7 @@ interface PendingInput {
   createdAt: string;
 }
 
-type SendStatus = 'started' | 'queued' | 'steered';
+type SendStatus = 'started' | 'queued' | 'steered' | 'guidance_pending';
 type SendResult = { ok: true; status: SendStatus; id: string; turnId?: string | null };
 
 interface UserInputOption {
@@ -132,6 +134,10 @@ export class CodexService extends EventEmitter {
   private currentWorkdir = DEFAULT_WORKDIR;
   private lastResumePath: string | null = null;
   private queuedInputs: PendingInput[] = [];
+  private pendingGuidanceInputs: PendingInput[] = [];
+  private savedGuidanceInputs: PendingInput[] = [];
+  private guidanceFlushTimer: NodeJS.Timeout | null = null;
+  private guidanceFlushRunning = false;
   private pendingUserInputs = new Map<string, PendingUserInputRequest>();
   private activeThreadId: string | null = null;
   private activeTurnId: string | null = null;
@@ -165,6 +171,22 @@ export class CodexService extends EventEmitter {
       serviceTier: item.serviceTier,
       createdAt: item.createdAt
     }));
+  }
+
+  public getGuidance() {
+    const items = [...this.pendingGuidanceInputs, ...this.savedGuidanceInputs];
+    return {
+      pending: this.pendingGuidanceInputs.length,
+      saved: this.savedGuidanceInputs.length,
+      count: items.length,
+      items: items.map((item) => ({
+        id: item.id,
+        text: item.text,
+        attachments: item.attachments.map(({ kind, name, url }) => ({ kind, name, url })),
+        serviceTier: item.serviceTier,
+        createdAt: item.createdAt
+      }))
+    };
   }
 
   public getPendingUserInputRequests(): PendingUserInputRequest[] {
@@ -222,6 +244,7 @@ export class CodexService extends EventEmitter {
     this.activeTurnId = null;
     this.activeThreadRunning = false;
     this.activeStartedAtMs = 0;
+    this.clearGuidanceInputs(false);
     this.suppressAutoResume = true;
     this.emit('status_update');
   }
@@ -255,12 +278,13 @@ export class CodexService extends EventEmitter {
       .catch((error) => this.broadcastStderr(`停止失败：${error.message || error}`))
       .finally(() => {
         if (interrupted) {
-          this.activeTurnId = null;
-          this.activeThreadRunning = false;
-          this.activeStartedAtMs = 0;
-        }
-        this.emit('status_update');
-        if (cb) cb();
+        this.activeTurnId = null;
+        this.activeThreadRunning = false;
+        this.activeStartedAtMs = 0;
+        this.clearGuidanceInputs(false);
+      }
+      this.emit('status_update');
+      if (cb) cb();
       });
   }
 
@@ -437,11 +461,13 @@ export class CodexService extends EventEmitter {
   public switchProject(workdir: string, cb: () => void): void {
     this.setWorkdir(workdir);
     this.clearQueuedInputs();
+    this.clearGuidanceInputs(false);
     this.restart(null, cb);
   }
 
   public async sendUserInput(text: string, imagePaths: string[] = [], attachments: InputAttachment[] = [], collaborationPreset: 'default' | 'plan' = 'default', serviceTier: string | null = null): Promise<SendResult> {
     const input = this.createPendingInput(text, imagePaths, attachments, collaborationPreset, serviceTier);
+    if (this.useAppServerBackend() && this.isRunning()) return this.acceptGuidanceInput(input);
     if (this.useAppServerBackend()) return this.sendAppServerInput(input);
     if (this.codexProc) {
       this.queuedInputs.push(input);
@@ -487,7 +513,7 @@ export class CodexService extends EventEmitter {
       const next = this.queuedInputs.shift();
       if (next) {
         this.emit('status_update');
-        this.sendAppServerInput(next).catch((error) => this.broadcastStderr(`引导发送失败：${error.message || error}`));
+        this.acceptGuidanceInput(next);
       }
       return true;
     }
@@ -509,6 +535,17 @@ export class CodexService extends EventEmitter {
     this.emit('status_update');
   }
 
+  private clearGuidanceInputs(emit = true): void {
+    if (this.guidanceFlushTimer) {
+      clearTimeout(this.guidanceFlushTimer);
+      this.guidanceFlushTimer = null;
+    }
+    const changed = Boolean(this.pendingGuidanceInputs.length || this.savedGuidanceInputs.length);
+    this.pendingGuidanceInputs = [];
+    this.savedGuidanceInputs = [];
+    if (changed && emit) this.emit('status_update');
+  }
+
   private useAppServerBackend(): boolean {
     return BACKEND_MODE !== 'exec';
   }
@@ -525,37 +562,98 @@ export class CodexService extends EventEmitter {
     };
   }
 
+  private acceptGuidanceInput(input: PendingInput): SendResult {
+    this.pendingGuidanceInputs.push(input);
+    this.scheduleGuidanceFlush();
+    this.emit('status_update');
+    return { ok: true, status: 'guidance_pending', id: input.id, turnId: this.activeTurnId };
+  }
+
+  private scheduleGuidanceFlush(): void {
+    if (this.guidanceFlushTimer) clearTimeout(this.guidanceFlushTimer);
+    this.guidanceFlushTimer = setTimeout(() => {
+      this.guidanceFlushTimer = null;
+      this.flushGuidanceInputs().catch((error) => this.savePendingGuidance(`引导合并失败，已保留且不会自动重跑：${error.message || error}`));
+    }, GUIDANCE_DEBOUNCE_MS);
+    this.guidanceFlushTimer.unref?.();
+  }
+
+  private mergeGuidanceInputs(inputs: PendingInput[]): PendingInput {
+    if (inputs.length === 1 && inputs[0]) return inputs[0];
+    const last = inputs[inputs.length - 1] || this.createPendingInput('', [], [], 'default', null);
+    return {
+      id: last.id,
+      text: inputs.map((item, index) => `引导 ${index + 1}:\n${item.text}`).join('\n\n'),
+      imagePaths: inputs.flatMap((item) => item.imagePaths),
+      attachments: inputs.flatMap((item) => item.attachments),
+      collaborationPreset: inputs.some((item) => item.collaborationPreset === 'plan') ? 'plan' : 'default',
+      serviceTier: inputs.some((item) => item.serviceTier === 'fast') ? 'fast' : null,
+      createdAt: inputs[0]?.createdAt || new Date().toISOString()
+    };
+  }
+
+  private savePendingGuidance(reason: string, inputs: PendingInput[] | null = null): void {
+    const pending = inputs || this.pendingGuidanceInputs.splice(0);
+    if (!pending.length) return;
+    this.savedGuidanceInputs.push(...pending);
+    this.emit('broadcast', 'notification', {
+      title: '引导已保留',
+      body: reason,
+      kind: 'info',
+      minVisible: false
+    });
+    this.emit('status_update');
+  }
+
+  private movePendingGuidanceToSaved(reason: string): void {
+    this.savePendingGuidance(reason);
+  }
+
+  private async flushGuidanceInputs(): Promise<void> {
+    if (this.guidanceFlushRunning) {
+      this.scheduleGuidanceFlush();
+      return;
+    }
+    this.guidanceFlushRunning = true;
+    let sending: PendingInput[] = [];
+    try {
+      if (!this.pendingGuidanceInputs.length) return;
+      if (!this.useAppServerBackend() || !this.isRunning()) {
+        this.movePendingGuidanceToSaved('当前回复已结束，引导已保留，失败不会自动重跑。');
+        return;
+      }
+      await this.ensureAppServer();
+      if (!this.activeTurnId && this.activeThreadRunning) await this.recoverActiveTurnId();
+      if (!this.appServer || !this.activeThreadId || !this.activeTurnId) {
+        this.movePendingGuidanceToSaved('当前 turn 暂不可合并，引导已保留，失败不会自动重跑。');
+        return;
+      }
+      sending = this.pendingGuidanceInputs.splice(0);
+      const input = this.mergeGuidanceInputs(sending);
+      await this.appServer.request('turn/steer', {
+        threadId: this.activeThreadId,
+        expectedTurnId: this.activeTurnId,
+        clientUserMessageId: input.id,
+        input: this.buildAppUserInput(input, false),
+        responsesapiClientMetadata: { source: 'codex-webui-ts', action: 'guidance' }
+      }, GUIDANCE_STEER_TIMEOUT_MS);
+      this.broadcastUserInput(input);
+      this.emit('status_update');
+    } catch (error) {
+      this.savePendingGuidance(`引导合并失败，已保留且不会自动重跑：${error instanceof Error ? error.message : String(error)}`, sending.length ? sending : null);
+    } finally {
+      this.guidanceFlushRunning = false;
+      if (this.pendingGuidanceInputs.length) this.scheduleGuidanceFlush();
+    }
+  }
+
   private async sendAppServerInput(input: PendingInput): Promise<SendResult> {
     await this.ensureAppThread();
     if (!this.appServer || !this.activeThreadId) throw new Error('app-server thread is not ready');
 
     const payload = this.buildAppUserInput(input);
     if (!this.activeTurnId && this.activeThreadRunning) await this.recoverActiveTurnId();
-    if (this.activeTurnId) {
-      try {
-        await this.appServer.request('turn/steer', {
-          threadId: this.activeThreadId,
-          expectedTurnId: this.activeTurnId,
-          clientUserMessageId: input.id,
-          input: payload,
-          responsesapiClientMetadata: { source: 'codex-webui-ts', action: 'steer' }
-        }, 30000);
-        this.broadcastUserInput(input);
-        this.emit('status_update');
-        return { ok: true, status: 'steered', id: input.id, turnId: this.activeTurnId };
-      } catch (error) {
-        this.queuedInputs.push(input);
-        this.broadcastStderr(`当前 turn 不接受实时引导，已排队：${error instanceof Error ? error.message : String(error)}`);
-        this.emit('status_update');
-        return { ok: true, status: 'queued', id: input.id };
-      }
-    }
-    if (this.activeThreadRunning) {
-      this.queuedInputs.push(input);
-      this.broadcastStderr('当前线程仍在运行，active turn id 尚未恢复，已排队。');
-      this.emit('status_update');
-      return { ok: true, status: 'queued', id: input.id };
-    }
+    if (this.activeTurnId || this.activeThreadRunning) return this.acceptGuidanceInput(input);
 
     const cfg = getConfigSafe();
     const collaborationMode = await this.resolveCollaborationMode(input.collaborationPreset, cfg);
@@ -578,6 +676,7 @@ export class CodexService extends EventEmitter {
     this.activeTurnId = result?.turn?.id || this.activeTurnId;
     this.activeThreadRunning = true;
     this.activeStartedAtMs = Date.now();
+    this.clearGuidanceInputs(false);
     this.broadcastUserInput(input);
     this.emit('status_update');
     return { ok: true, status: 'started', id: input.id, turnId: this.activeTurnId };
@@ -892,8 +991,8 @@ export class CodexService extends EventEmitter {
     return `${method}: ${JSON.stringify(params)}`;
   }
 
-  private buildAppUserInput(input: PendingInput): any[] {
-    const text = this.withMemory(input.text);
+  private buildAppUserInput(input: PendingInput, includeMemory = true): any[] {
+    const text = includeMemory ? this.withMemory(input.text) : input.text;
     const items: any[] = [{ type: 'text', text, text_elements: [] }];
     for (const filePath of input.imagePaths) items.push({ type: 'localImage', path: filePath });
     return items;
@@ -1013,8 +1112,8 @@ export class CodexService extends EventEmitter {
   }
 
   private shutdownAppServer(): void {
-    // The app-server is a separate 5156 process. WebUI stop/restart only
-    // disconnects this client so active Codex work is not killed with 5155.
+    // The app-server is a separate 5056 process. WebUI stop/restart only
+    // disconnects this client so active Codex work is not killed with 5055.
     this.appServer?.shutdown();
     this.appServer = null;
     this.appServerStarting = null;
@@ -1022,6 +1121,7 @@ export class CodexService extends EventEmitter {
     this.activeTurnId = null;
     this.activeThreadRunning = false;
     this.activeStartedAtMs = 0;
+    this.clearGuidanceInputs(false);
     this.suppressAutoResume = false;
     this.emit('status_update');
   }
