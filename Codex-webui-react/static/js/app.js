@@ -495,7 +495,6 @@ const CLIENT_BUILD = '20260706-transfer-merge';
         { id:'review', description:'对当前改动发起 Review。', flavor:'official', action:'startReview', meta:'Official', requiresThread:true, supportsInlineArgs:true },
         { id:'status', description:'查看当前会话配置与 token 使用情况。', flavor:'official', action:'showStatus', meta:'Local', availableDuringTask:true },
         { id:'debug-config', description:'查看配置层与来源。', flavor:'official', action:'showDebugConfig', meta:'Local', availableDuringTask:true },
-        { id:'diff', description:'显示当前工作区 diff。', flavor:'official', action:'showDiff', meta:'Local', requiresWorkspace:true, availableDuringTask:true },
         { id:'goal', description:'设置或查看长任务目标。', flavor:'official', action:'threadGoal', meta:'Official', requiresThread:true, supportsInlineArgs:true, availableDuringTask:true },
         { id:'compact', description:'压缩当前线程上下文。', flavor:'official', action:'compactThread', meta:'Official', requiresThread:true, availableDuringTask:false },
         { id:'fork', description:'从当前线程创建分支线程。', flavor:'official', action:'forkThread', meta:'Official', requiresThread:true, availableDuringTask:false },
@@ -1323,8 +1322,7 @@ const CLIENT_BUILD = '20260706-transfer-merge';
         renderGitPanel();
       }
       async function openGitPanel() {
-        openModal('gitModal');
-        await loadGitPanel(gitPanelState.scope);
+        addSystem('Git 面板已在 React 迁移版中移除。', true);
       }
       async function runGitPathAction(endpoint, extra = {}) {
         const paths = gitSelectionPaths();
@@ -1415,14 +1413,7 @@ const CLIENT_BUILD = '20260706-transfer-merge';
         renderTerminalPanel();
       }
       async function openTerminalPanel() {
-        openModal('terminalModal');
-        await loadTerminalSessions();
-        if (!terminalState.pollTimer) {
-          terminalState.pollTimer = setInterval(() => {
-            if (!$('terminalModal')?.classList.contains('open')) return;
-            loadTerminalSessions().catch(() => {});
-          }, 1500);
-        }
+        addSystem('终端面板已在 React 迁移版中移除。', true);
       }
       async function spawnTerminal() {
         const command = String(terminalCommandInput?.value || '').trim();
@@ -2095,10 +2086,6 @@ const CLIENT_BUILD = '20260706-transfer-merge';
         if (item.action === 'showDebugConfig') {
           await loadConfig();
           addBubble('```json\n' + JSON.stringify(currentConfig, null, 2) + '\n```', 'agent');
-          return;
-        }
-        if (item.action === 'showDiff') {
-          await showGitDiff();
           return;
         }
         if (item.action === 'initAgents') {
@@ -4842,30 +4829,30 @@ const CLIENT_BUILD = '20260706-transfer-merge';
           });
         }
       });
-      terminalSpawnBtn.addEventListener('click', () => spawnTerminal().catch((error) => setTerminalStatus(`终端创建失败：${error.message || error}`, true)));
-      terminalRefreshBtn.addEventListener('click', () => loadTerminalSessions().catch((error) => setTerminalStatus(`终端刷新失败：${error.message || error}`, true)));
-      terminalKillBtn.addEventListener('click', () => killActiveTerminal().catch((error) => setTerminalStatus(`终端结束失败：${error.message || error}`, true)));
-      terminalSendInputBtn.addEventListener('click', () => sendTerminalInput().catch((error) => setTerminalStatus(`stdin 发送失败：${error.message || error}`, true)));
-      terminalStdinInput.addEventListener('keydown', (event) => {
+      terminalSpawnBtn?.addEventListener('click', () => spawnTerminal().catch((error) => setTerminalStatus(`终端创建失败：${error.message || error}`, true)));
+      terminalRefreshBtn?.addEventListener('click', () => loadTerminalSessions().catch((error) => setTerminalStatus(`终端刷新失败：${error.message || error}`, true)));
+      terminalKillBtn?.addEventListener('click', () => killActiveTerminal().catch((error) => setTerminalStatus(`终端结束失败：${error.message || error}`, true)));
+      terminalSendInputBtn?.addEventListener('click', () => sendTerminalInput().catch((error) => setTerminalStatus(`stdin 发送失败：${error.message || error}`, true)));
+      terminalStdinInput?.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
           event.preventDefault();
           sendTerminalInput().catch((error) => setTerminalStatus(`stdin 发送失败：${error.message || error}`, true));
         }
       });
-      gitRefreshBtn.addEventListener('click', () => loadGitPanel(gitPanelState.scope).catch((error) => setGitStatusLine(`Git 刷新失败：${error.message || error}`, true)));
-      gitOpenRepoBtn.addEventListener('click', () => {
+      gitRefreshBtn?.addEventListener('click', () => loadGitPanel(gitPanelState.scope).catch((error) => setGitStatusLine(`Git 刷新失败：${error.message || error}`, true)));
+      gitOpenRepoBtn?.addEventListener('click', () => {
         const repo = gitPanelState.status?.repoRoot || gitPanelState.status?.root || currentWorkdir;
         if (repo) openLocalPath(repo);
       });
-      gitScopeUnstaged.addEventListener('click', () => loadGitPanel('unstaged').catch((error) => setGitStatusLine(`Git 读取失败：${error.message || error}`, true)));
-      gitScopeStaged.addEventListener('click', () => loadGitPanel('staged').catch((error) => setGitStatusLine(`Git 读取失败：${error.message || error}`, true)));
-      gitStageSelected.addEventListener('click', () => runGitPathAction('/git/stage').catch((error) => setGitStatusLine(`暂存失败：${error.message || error}`, true)));
-      gitUnstageSelected.addEventListener('click', () => runGitPathAction('/git/unstage').catch((error) => setGitStatusLine(`取消暂存失败：${error.message || error}`, true)));
-      gitDiscardSelected.addEventListener('click', () => discardSelectedGitChanges().catch((error) => setGitStatusLine(`丢弃失败：${error.message || error}`, true)));
-      gitCommitBtn.addEventListener('click', () => commitGitChanges().catch((error) => setGitStatusLine(`提交失败：${error.message || error}`, true)));
-      gitPullBtn.addEventListener('click', () => pullGitChanges().catch((error) => setGitStatusLine(`拉取失败：${error.message || error}`, true)));
-      gitPushBtn.addEventListener('click', () => pushGitChanges().catch((error) => setGitStatusLine(`推送失败：${error.message || error}`, true)));
-      gitBranchCreate.addEventListener('click', () => createGitBranch().catch((error) => setGitStatusLine(`创建分支失败：${error.message || error}`, true)));
+      gitScopeUnstaged?.addEventListener('click', () => loadGitPanel('unstaged').catch((error) => setGitStatusLine(`Git 读取失败：${error.message || error}`, true)));
+      gitScopeStaged?.addEventListener('click', () => loadGitPanel('staged').catch((error) => setGitStatusLine(`Git 读取失败：${error.message || error}`, true)));
+      gitStageSelected?.addEventListener('click', () => runGitPathAction('/git/stage').catch((error) => setGitStatusLine(`暂存失败：${error.message || error}`, true)));
+      gitUnstageSelected?.addEventListener('click', () => runGitPathAction('/git/unstage').catch((error) => setGitStatusLine(`取消暂存失败：${error.message || error}`, true)));
+      gitDiscardSelected?.addEventListener('click', () => discardSelectedGitChanges().catch((error) => setGitStatusLine(`丢弃失败：${error.message || error}`, true)));
+      gitCommitBtn?.addEventListener('click', () => commitGitChanges().catch((error) => setGitStatusLine(`提交失败：${error.message || error}`, true)));
+      gitPullBtn?.addEventListener('click', () => pullGitChanges().catch((error) => setGitStatusLine(`拉取失败：${error.message || error}`, true)));
+      gitPushBtn?.addEventListener('click', () => pushGitChanges().catch((error) => setGitStatusLine(`推送失败：${error.message || error}`, true)));
+      gitBranchCreate?.addEventListener('click', () => createGitBranch().catch((error) => setGitStatusLine(`创建分支失败：${error.message || error}`, true)));
       projectOpenConfirm.addEventListener('click', () => openProjectFolder(projectPathInput.value));
       projectPickFolder.addEventListener('click', pickProjectFolder);
       projectBrowseUp.addEventListener('click', () => {
