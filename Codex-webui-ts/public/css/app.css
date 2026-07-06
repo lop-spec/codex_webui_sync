@@ -485,21 +485,17 @@
         font-size: 16px;
       }
       .workspace-root-secondary-action {
-        width: 0;
-        min-width: 0;
-        flex: 0 0 0;
-        overflow: hidden;
+        display: none;
         opacity: 0;
         pointer-events: none;
-        visibility: hidden;
       }
       .workspace-root-row:hover .workspace-root-secondary-action,
       .workspace-root-row:focus-within .workspace-root-secondary-action {
+        display: inline-grid;
         width: 28px;
         flex-basis: 28px;
         opacity: 1;
         pointer-events: auto;
-        visibility: visible;
       }
       .workspace-thread-list {
         list-style: none;
@@ -3877,6 +3873,13 @@
         }
       }
       @media (max-width: 700px) {
+        .recycle-restore-filter {
+          grid-template-columns: 1fr;
+          align-items: stretch;
+        }
+        .recycle-restore-filter-range {
+          justify-content: start;
+        }
         .composer-zone {
           padding: 0 10px 10px;
         }
