@@ -26,6 +26,8 @@ export const DEFAULT_CONFIG = {
     'package.json',
     'RULES.md',
     'sync-meta/source.json',
+    'codex/rules/*.md',
+    'codex/skills/lop-*/**',
     'parity/**',
     'scripts/**',
     'Codex-webui-ts/AGENTS.md',
@@ -44,6 +46,34 @@ export const DEFAULT_CONFIG = {
     'Codex-webui-react/src/**',
     'Codex-webui-react/static/**',
     'Codex-webui-react/docs/source-to-target-ledger.md'
+  ],
+  externalRoots: [
+    {
+      localPath: '~/.codex/rules',
+      repoPath: 'codex/rules',
+      include: ['*.md'],
+      exclude: ['*.bak*', 'default.rules']
+    },
+    {
+      localPath: '~/.codex/skills',
+      repoPath: 'codex/skills',
+      include: ['lop-*/**'],
+      exclude: [
+        '**/.git/**',
+        '**/node_modules/**',
+        '**/__pycache__/**',
+        '**/.pytest_cache/**',
+        '**/.venv/**',
+        '**/venv/**',
+        '**/outputs/**',
+        '**/logs/**',
+        '**/*.pyc',
+        '**/*.tmp',
+        '**/*.bak*',
+        '**/.env',
+        '**/.env.*'
+      ]
+    }
   ],
   exclude: [
     '**/.git/**',
@@ -85,6 +115,8 @@ export const DEFAULT_CONFIG = {
   watchTargets: [
     'package.json',
     'RULES.md',
+    '~/.codex/rules',
+    '~/.codex/skills',
     'parity',
     'scripts',
     'Codex-webui-ts/AGENTS.md',
@@ -120,6 +152,10 @@ const PRUNE_DIR_NAMES = new Set([
   'tmp',
   'temp',
   '.cache',
+  '__pycache__',
+  '.pytest_cache',
+  '.venv',
+  'venv',
   'transfers',
   'sessions'
 ]);
@@ -134,6 +170,34 @@ export function toPosixPath(value) {
     .replace(/^\.\/+/, '')
     .replace(/\/+/g, '/')
     .replace(/\/$/, '');
+}
+
+function isPathInside(targetPath, parentPath) {
+  const relative = path.relative(path.resolve(parentPath), path.resolve(targetPath));
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
+export function resolveConfigPath(rootDir, value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (raw === '~') return os.homedir();
+  if (raw.startsWith('~/') || raw.startsWith('~\\')) {
+    return path.resolve(os.homedir(), raw.slice(2));
+  }
+  return path.isAbsolute(raw) ? path.resolve(raw) : path.resolve(rootDir, raw);
+}
+
+function safeLocalJoin(baseDir, relPath = '') {
+  const normalized = toPosixPath(relPath);
+  const parts = normalized ? normalized.split('/').filter(Boolean) : [];
+  if (parts.some((part) => part === '..')) {
+    throw new Error(`refusing unsafe relative path: ${relPath}`);
+  }
+  const targetPath = path.resolve(baseDir, ...parts);
+  if (!isPathInside(targetPath, baseDir)) {
+    throw new Error(`refusing path outside sync root: ${relPath}`);
+  }
+  return targetPath;
 }
 
 function isObject(value) {
@@ -177,11 +241,31 @@ export function loadConfig(rootDir = root, env = process.env) {
 
   config.include = (config.include || []).map(toPosixPath).filter(Boolean);
   config.exclude = (config.exclude || []).map(toPosixPath).filter(Boolean);
+  config.externalRoots = normalizeExternalRoots(rootDir, config);
   config.watchTargets = (config.watchTargets || []).map(toPosixPath).filter(Boolean);
   config.debounceMs = Number(config.debounceMs || DEFAULT_CONFIG.debounceMs);
   config.maxFileBytes = Number(config.maxFileBytes || DEFAULT_CONFIG.maxFileBytes);
   config.maxChangesPerCommit = Number(config.maxChangesPerCommit || DEFAULT_CONFIG.maxChangesPerCommit);
   return config;
+}
+
+function normalizeExternalRoot(rootDir, entry) {
+  const raw = typeof entry === 'string' ? { localPath: entry } : (entry || {});
+  const localPath = resolveConfigPath(rootDir, raw.localPath || raw.path || raw.root);
+  const repoPath = toPosixPath(raw.repoPath || raw.prefix || raw.target || '');
+  if (!localPath || !repoPath) return null;
+  return {
+    localPath,
+    repoPath,
+    include: (raw.include?.length ? raw.include : ['**']).map(toPosixPath).filter(Boolean),
+    exclude: (raw.exclude || []).map(toPosixPath).filter(Boolean)
+  };
+}
+
+export function normalizeExternalRoots(rootDir = root, config = loadConfig(rootDir)) {
+  return (config.externalRoots || [])
+    .map((entry) => normalizeExternalRoot(rootDir, entry))
+    .filter(Boolean);
 }
 
 export function localSourceInfo(rootDir = root, config = loadConfig(rootDir)) {
@@ -197,7 +281,7 @@ export function localSourceInfo(rootDir = root, config = loadConfig(rootDir)) {
     sourceName: config.sourceName || `machine-${sourceId.slice(0, 8)}`,
     sourceKind: 'machine-workspace-hash',
     workspace: path.basename(rootDir),
-    scope: 'source-rules'
+    scope: 'source-rules-skills'
   };
 }
 
@@ -278,41 +362,88 @@ function shouldPruneDir(entryName) {
   return PRUNE_DIR_NAMES.has(entryName);
 }
 
+function joinRepoPath(prefix, innerPath) {
+  const normalizedInner = toPosixPath(innerPath);
+  return toPosixPath(normalizedInner ? path.posix.join(prefix, normalizedInner) : prefix);
+}
+
+export function localPathForSyncPath(rootDir = root, config = loadConfig(rootDir), relPath) {
+  const normalized = toPosixPath(relPath);
+  for (const externalRoot of normalizeExternalRoots(rootDir, config)) {
+    if (normalized === externalRoot.repoPath || normalized.startsWith(`${externalRoot.repoPath}/`)) {
+      const innerPath = normalized.slice(externalRoot.repoPath.length).replace(/^\/+/, '');
+      return safeLocalJoin(externalRoot.localPath, innerPath);
+    }
+  }
+  return safeLocalJoin(rootDir, normalized);
+}
+
+export function syncPathForLocalPath(rootDir = root, config = loadConfig(rootDir), absPath) {
+  const resolved = path.resolve(absPath);
+  for (const externalRoot of normalizeExternalRoots(rootDir, config)) {
+    if (isPathInside(resolved, externalRoot.localPath)) {
+      const innerPath = toPosixPath(path.relative(externalRoot.localPath, resolved));
+      return joinRepoPath(externalRoot.repoPath, innerPath);
+    }
+  }
+  if (isPathInside(resolved, rootDir)) return toPosixPath(path.relative(rootDir, resolved));
+  return '';
+}
+
 export function collectSyncFiles(rootDir = root, config = loadConfig(rootDir)) {
   const shouldSync = createSyncFilter(config);
   const files = [];
   const skipped = [];
+  const seen = new Set();
 
-  function walk(absDir) {
+  function addFile(absPath, relPath) {
+    if (!shouldSync(relPath)) return;
+    if (seen.has(relPath)) throw new Error(`duplicate sync path: ${relPath}`);
+    const stat = fs.statSync(absPath);
+    if (stat.size > config.maxFileBytes) {
+      skipped.push({ path: relPath, size: stat.size, reason: 'maxFileBytes' });
+      return;
+    }
+    const content = fs.readFileSync(absPath);
+    seen.add(relPath);
+    files.push({
+      path: relPath,
+      absPath,
+      size: stat.size,
+      sha: gitBlobSha(content),
+      content
+    });
+  }
+
+  function walk(absDir, baseDir, repoPrefix = '', localFilter = () => true) {
     for (const entry of fs.readdirSync(absDir, { withFileTypes: true })) {
       if (entry.name === '.' || entry.name === '..') continue;
       if (entry.isDirectory() && shouldPruneDir(entry.name)) continue;
       const absPath = path.join(absDir, entry.name);
-      const relPath = toPosixPath(path.relative(rootDir, absPath));
+      const innerPath = toPosixPath(path.relative(baseDir, absPath));
+      const relPath = repoPrefix ? joinRepoPath(repoPrefix, innerPath) : innerPath;
       if (entry.isDirectory()) {
-        walk(absPath);
+        walk(absPath, baseDir, repoPrefix, localFilter);
         continue;
       }
-      if (!entry.isFile() || !shouldSync(relPath)) continue;
-      const stat = fs.statSync(absPath);
-      if (stat.size > config.maxFileBytes) {
-        skipped.push({ path: relPath, size: stat.size, reason: 'maxFileBytes' });
-        continue;
-      }
-      const content = fs.readFileSync(absPath);
-      files.push({
-        path: relPath,
-        absPath,
-        size: stat.size,
-        sha: gitBlobSha(content),
-        content
-      });
+      if (!entry.isFile() || !localFilter(innerPath)) continue;
+      addFile(absPath, relPath);
     }
   }
 
-  walk(rootDir);
+  walk(rootDir, rootDir);
+  for (const externalRoot of normalizeExternalRoots(rootDir, config)) {
+    if (!fs.existsSync(externalRoot.localPath)) continue;
+    const stat = fs.statSync(externalRoot.localPath);
+    if (!stat.isDirectory()) continue;
+    const include = createPathMatcher(externalRoot.include || ['**']);
+    const exclude = createPathMatcher(externalRoot.exclude || []);
+    const localFilter = (innerPath) => include(innerPath) && !exclude(innerPath);
+    walk(externalRoot.localPath, externalRoot.localPath, externalRoot.repoPath, localFilter);
+  }
   if (config.sourceMarkerPath && shouldSync(config.sourceMarkerPath)) {
     const content = sourceMarkerBuffer(rootDir, config);
+    if (seen.has(config.sourceMarkerPath)) throw new Error(`duplicate sync path: ${config.sourceMarkerPath}`);
     files.push({
       path: config.sourceMarkerPath,
       absPath: null,
@@ -731,6 +862,7 @@ function statusReport(rootDir, config) {
     private: Boolean(config.private),
     includeCount: config.include.length,
     excludeCount: config.exclude.length,
+    externalRootCount: config.externalRoots.length,
     watchTargetCount: config.watchTargets.length,
     ...summary
   };
@@ -743,6 +875,7 @@ function printStatus(report) {
   console.log(`[github-sync] source: ${report.source.sourceName} (${report.source.sourceId}) -> ${report.sourceMarkerPath}`);
   console.log(`[github-sync] create missing repo: ${report.createRepo ? 'yes' : 'no'} (${report.private ? 'private' : 'public'})`);
   console.log(`[github-sync] local source files: ${report.fileCount} (${formatBytes(report.totalBytes)})`);
+  console.log(`[github-sync] external rule roots: ${report.externalRootCount}`);
   console.log(`[github-sync] skipped: ${report.skippedCount}`);
   if (report.skipped?.length) {
     for (const item of report.skipped.slice(0, 20)) {
@@ -827,14 +960,15 @@ async function runWatch({ rootDir, config, noInitial, dryRun, message }) {
   const shouldSync = createSyncFilter(config);
   const watchers = [];
   for (const relTarget of config.watchTargets) {
-    const absTarget = path.join(rootDir, relTarget);
+    const absTarget = resolveConfigPath(rootDir, relTarget);
     if (!fs.existsSync(absTarget)) continue;
     const stat = fs.statSync(absTarget);
     const watchPath = stat.isDirectory() ? absTarget : path.dirname(absTarget);
     const watcher = fs.watch(watchPath, { recursive: stat.isDirectory() }, (_event, filename) => {
-      const changed = filename
-        ? toPosixPath(path.join(stat.isDirectory() ? relTarget : path.dirname(relTarget), filename.toString()))
-        : relTarget;
+      const changedAbs = filename
+        ? path.join(watchPath, filename.toString())
+        : absTarget;
+      const changed = syncPathForLocalPath(rootDir, config, changedAbs);
       if (shouldSync(changed)) schedule(changed);
     });
     watchers.push(watcher);

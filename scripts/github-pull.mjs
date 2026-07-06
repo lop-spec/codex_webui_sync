@@ -10,6 +10,7 @@ import {
   createPathMatcher,
   createSyncFilter,
   gitBlobSha,
+  localPathForSyncPath,
   localSourceInfo,
   loadConfig,
   toPosixPath
@@ -367,7 +368,7 @@ export async function pullOnce({ rootDir = root, syncConfig, pullConfig, dryRun 
   for (const item of comparison.changed) {
     let remoteContent = item.remoteContent;
     if (!remoteContent) remoteContent = await fetchBlobContent(pullConfig, item.remoteSha);
-    const localPath = path.join(rootDir, item.path);
+    const localPath = localPathForSyncPath(rootDir, syncConfig, item.path);
     if (fs.existsSync(localPath)) {
       const backupPath = backupPathFor(rootDir, pullConfig, item.path, runId);
       fs.mkdirSync(path.dirname(backupPath), { recursive: true });
