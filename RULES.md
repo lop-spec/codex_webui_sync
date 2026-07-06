@@ -24,3 +24,4 @@
 ## 历史耗时审计口径
 
 - 用户询问“回复慢”“单次问题”“单轮回复”“调用链耗时”时，必须按 user turn 粒度统计：从该次用户输入到该轮最后一个 assistant/tool 事件，逐项列出 `function_call`/`function_call_output`、`custom_tool_call`、`write_stdin`、`web_search_call` 和相邻事件 gap；不得用整条 session 首尾耗时代替单次回复耗时。只有用户明确要求“整条会话/全会话”时才按 session 聚合。
+- 这类耗时审计的最终聊天正文必须直接给 TOP 表和每个慢 turn 的占比矩阵，至少包含初始等待、工具调用合计、模型/非工具 gap、最慢调用、最慢 gap 及各自占比；产物文件只能补充明细，不能替代正文报告。
