@@ -3473,12 +3473,16 @@ const CLIENT_BUILD = '20260706-manual-projects';
         render();
         exposeDebugState();
       }
-      function removeRecycleRestoreDialog() {
+      function removeRecycleRestoreDialog(state) {
+        if (state?.filterTimer) {
+          window.clearTimeout(state.filterTimer);
+          state.filterTimer = 0;
+        }
         document.getElementById('recycleRestoreModal')?.remove();
         exposeDebugState();
       }
       function recycleRestoreTime(item) {
-        return Number(item?.sessionTime || item?.mtimeMs || 0) || Date.now();
+        return Number(item?.archiveTime || item?.mtimeMs || item?.sessionTime || 0) || Date.now();
       }
       function renderRecycleRestoreItems(state) {
         if (state.loading) {
@@ -3488,7 +3492,8 @@ const CLIENT_BUILD = '20260706-manual-projects';
           return `<div class="recycle-restore-error">${escapeHtml(state.error)}</div>`;
         }
         if (!state.items.length) {
-          return '<div class="recycle-restore-empty">近 1 天没有可恢复的历史对话</div>';
+          const query = String(state.query || '').trim();
+          return `<div class="recycle-restore-empty">${query ? `没有匹配“${escapeHtml(query)}”的可恢复历史对话` : '近 1 天没有可恢复的历史对话'}</div>`;
         }
         return state.items.map((item) => {
           const restoring = state.restoringPath && normalizeSessionPath(state.restoringPath) === normalizeSessionPath(item.recycledPath);
@@ -3523,6 +3528,11 @@ const CLIENT_BUILD = '20260706-manual-projects';
                 <strong>${escapeHtml(state.historyProject?.name || '历史对话')}</strong>
                 <small title="${escapeAttr(state.historyProject?.path || '')}">${escapeHtml(state.historyProject?.path || '等待服务端创建')}</small>
               </div>
+              <label class="recycle-restore-filter">
+                <span>过滤</span>
+                <input id="recycleRestoreQuery" data-action="filter-recycle-restore" type="search" value="${escapeAttr(state.query || '')}" placeholder="输入关键字过滤历史会话" autocomplete="off" />
+                <small>${state.loading ? '读取中' : `${state.items.length} 条`}</small>
+              </label>
               <div class="recycle-restore-list">${renderRecycleRestoreItems(state)}</div>
             </div>
             <div class="dialog-foot">
@@ -3537,7 +3547,9 @@ const CLIENT_BUILD = '20260706-manual-projects';
         state.error = '';
         renderRecycleRestoreDialog(overlay, state);
         try {
-          const response = await fetch('/session/recycle-candidates?days=1', { cache: 'no-store' });
+          const params = new URLSearchParams({ days: '1', limit: '200' });
+          if (String(state.query || '').trim()) params.set('q', String(state.query || '').trim());
+          const response = await fetch(`/session/recycle-candidates?${params.toString()}`, { cache: 'no-store' });
           const data = await response.json().catch(() => ({}));
           if (!response.ok || data.ok === false) throw new Error(data.error || `HTTP ${response.status}`);
           state.items = Array.isArray(data.items) ? data.items : [];
@@ -3576,16 +3588,26 @@ const CLIENT_BUILD = '20260706-manual-projects';
         overlay.className = 'modal open recycle-restore-modal';
         overlay.id = 'recycleRestoreModal';
         document.body.appendChild(overlay);
-        const state = { loading: true, error: '', items: [], historyProject: null, restoringPath: '' };
+        const state = { loading: true, error: '', items: [], historyProject: null, restoringPath: '', query: '', filterTimer: 0 };
         overlay.addEventListener('click', (event) => {
-          if (event.target === overlay) removeRecycleRestoreDialog();
+          if (event.target === overlay) removeRecycleRestoreDialog(state);
+        });
+        overlay.addEventListener('input', (event) => {
+          const target = event.target;
+          if (!target?.matches?.('[data-action="filter-recycle-restore"]')) return;
+          state.query = target.value || '';
+          if (state.filterTimer) window.clearTimeout(state.filterTimer);
+          state.filterTimer = window.setTimeout(() => {
+            state.filterTimer = 0;
+            loadRecycleRestoreCandidates(state, overlay);
+          }, 250);
         });
         overlay.addEventListener('click', async (event) => {
           const actionTarget = event.target && event.target.closest ? event.target.closest('[data-action]') : null;
           const action = actionTarget?.getAttribute('data-action') || '';
           if (!action) return;
           if (action === 'close-recycle-restore') {
-            removeRecycleRestoreDialog();
+            removeRecycleRestoreDialog(state);
             return;
           }
           if (action === 'refresh-recycle-restore') {
