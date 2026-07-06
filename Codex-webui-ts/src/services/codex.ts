@@ -970,10 +970,14 @@ export class CodexService extends EventEmitter {
       this.recordResume(latest);
     }
     if (turn.status === 'failed' && turn.error) {
+      this.persistInterruptedTurnState('turn-failed');
       const body = `turn failed: ${JSON.stringify(turn.error)}`;
       this.broadcastStderr(body);
       this.emit('broadcast', 'notification', { title: 'Agent Error', body, kind: 'error', threadId, durationMs, minVisible: false });
-    } else if (durationMs >= 60_000) {
+    } else {
+      this.clearInterruptedTurnState('turn-completed');
+    }
+    if (turn.status !== 'failed' && durationMs >= 60_000) {
       const body = threadId ? this.lastAgentMessageByThread.get(threadId) : '';
       this.emit('broadcast', 'notification', {
         title: 'Agent Complete',
@@ -1121,6 +1125,7 @@ export class CodexService extends EventEmitter {
   private shutdownAppServer(): void {
     // The app-server is a separate 5056 process. WebUI stop/restart only
     // disconnects this client so active Codex work is not killed with 5055.
+    if (this.activeTurnId || this.activeThreadRunning) this.persistInterruptedTurnState('app-server-shutdown');
     this.appServer?.shutdown();
     this.appServer = null;
     this.appServerStarting = null;

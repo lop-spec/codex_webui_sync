@@ -272,7 +272,19 @@ export async function pullOnce({ rootDir = root, syncConfig, pullConfig, dryRun 
   const pullState = readJson(path.join(rootDir, pullConfig.statePath), null);
   const source = localSourceInfo(rootDir, syncConfig);
   const remoteSource = await remoteSourceInfo(pullConfig, remoteSnapshot);
-  if (pullState?.headSha === remoteSnapshot.headSha) {
+  const comparison = await compareRemoteToLocal({
+    rootDir,
+    syncConfig,
+    pullConfig,
+    remoteSnapshot,
+    includeContent: true
+  });
+  const hasLocalDiff = Boolean(
+    comparison.changed.length
+    || comparison.protectedChanged.length
+    || comparison.missingRemote.length
+  );
+  if (pullState?.headSha === remoteSnapshot.headSha && !hasLocalDiff) {
     return {
       ok: true,
       dryRun,
@@ -291,7 +303,7 @@ export async function pullOnce({ rootDir = root, syncConfig, pullConfig, dryRun 
   }
   const syncState = readJson(path.join(rootDir, syncConfig.sourceStatePath || 'logs/github-sync-state.json'), null);
   const knownOwnHead = syncState?.headSha === remoteSnapshot.headSha || syncState?.commitSha === remoteSnapshot.headSha;
-  if (remoteSource?.sourceId === source.sourceId && knownOwnHead) {
+  if (remoteSource?.sourceId === source.sourceId && knownOwnHead && !hasLocalDiff) {
     writePullState(rootDir, pullConfig, {
       headSha: remoteSnapshot.headSha,
       skipped: true,
@@ -315,13 +327,6 @@ export async function pullOnce({ rootDir = root, syncConfig, pullConfig, dryRun 
       missingRemote: []
     };
   }
-  const comparison = await compareRemoteToLocal({
-    rootDir,
-    syncConfig,
-    pullConfig,
-    remoteSnapshot,
-    includeContent: true
-  });
   if (comparison.changed.length > pullConfig.maxApplyPerRun) {
     throw new Error(`refusing to apply ${comparison.changed.length} files in one pull; inspect status or raise maxApplyPerRun`);
   }
