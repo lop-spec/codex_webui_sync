@@ -4795,6 +4795,7 @@ const CLIENT_BUILD = '20260706-transfer-merge';
       mobileSidebarBtn.addEventListener('click', openMobileSidebar);
       sidebarBackdrop.addEventListener('click', closeMobileSidebar);
       openFolderBtn.addEventListener('click', () => openProjectModal());
+      restoreHistoryBtn?.addEventListener('click', openRecycleRestoreDialog);
       openAccountBtn?.addEventListener('click', () => openAccountPanel().catch((error) => setAccountStatus(`账号面板打开失败：${error.message || error}`, true)));
       skillsTabPlugins.addEventListener('click', () => { skillsState.activeTab = 'plugins'; skillsState.managerOpen = false; renderSkillsPanel(); });
       skillsTabInstalled.addEventListener('click', () => { skillsState.activeTab = 'skills'; skillsState.managerOpen = false; renderSkillsPanel(); });
