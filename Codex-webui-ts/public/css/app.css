@@ -448,9 +448,7 @@
       }
       .workspace-root-actions {
         min-width: 0;
-        display: grid;
-        grid-auto-flow: column;
-        grid-auto-columns: 28px;
+        display: inline-flex;
         align-items: center;
         gap: 2px;
         justify-self: end;
@@ -490,6 +488,7 @@
       .workspace-root-row:not(:hover):not(:focus-within) .project-open-btn {
         width: 0;
         min-width: 0;
+        flex-basis: 0;
         opacity: 0;
         pointer-events: none;
         visibility: hidden;
