@@ -1002,7 +1002,9 @@ function npmScriptExists(scriptName, rootDir = root) {
 
 function runLocalPreflight(rootDir) {
   if (!npmScriptExists('test', rootDir)) return;
-  const result = spawnSync(process.execPath, ['--test', 'tests/github-sync.test.mjs'], {
+  const testPath = path.join(rootDir, 'tests', 'github-sync.test.mjs');
+  if (!fs.existsSync(testPath)) return;
+  const result = spawnSync(process.execPath, ['--test', testPath], {
     cwd: rootDir,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe']
