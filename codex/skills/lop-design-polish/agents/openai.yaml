@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lop Design Polish"
+  short_description: "UI, docs, and reports visual polish"
+  default_prompt: "Use $lop-design-polish to improve this app UI, document, or report with a concise audit, concrete edits, and verification."

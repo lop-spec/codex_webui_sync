@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lop Systematic Debugging"
+  short_description: "Evidence-first root-cause debugging"
+  default_prompt: "Use $lop-systematic-debugging to debug this failure from reproduction to verified fix."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "lop Long Task"
+  short_description: "Autonomous long-task delivery for lop"
+  default_prompt: "Use $lop-long-task to deliver this long task as a verified finished artifact."

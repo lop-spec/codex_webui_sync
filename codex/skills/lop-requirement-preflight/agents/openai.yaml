@@ -1,0 +1,4 @@
+interface:
+  display_name: "Requirement Preflight"
+  short_description: "Decide scope before coding"
+  default_prompt: "Use $lop-requirement-preflight to turn this request into a decision-ready implementation plan before coding."
