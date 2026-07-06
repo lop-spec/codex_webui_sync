@@ -565,7 +565,12 @@ export async function syncOnce({ rootDir = root, config = loadConfig(rootDir), d
     };
   }
 
-  if (changedFiles.length === 1 && changedFiles[0].path === config.sourceMarkerPath && removedPaths.length === 0) {
+  if (
+    changedFiles.length === 1
+    && changedFiles[0].path === config.sourceMarkerPath
+    && removedPaths.length === 0
+    && remote.blobs.has(config.sourceMarkerPath)
+  ) {
     writeSyncState(rootDir, config, {
       headSha: remote.headSha,
       commitSha: remote.headSha,
