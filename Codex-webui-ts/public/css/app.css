@@ -2725,6 +2725,69 @@
         color: var(--text-muted);
         font-size: 12px;
       }
+      .account-limits-section {
+        display: grid;
+        gap: 8px;
+      }
+      .account-limits-trigger {
+        width: 100%;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface-soft);
+        color: var(--text);
+        padding: 8px 10px;
+        text-align: left;
+      }
+      .account-limits-trigger:hover,
+      .account-limits-trigger:focus-visible {
+        background: var(--surface-hover);
+      }
+      .account-limits-trigger-left {
+        min-width: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .account-limits-trigger-icon {
+        width: 28px;
+        height: 28px;
+        display: inline-grid;
+        place-items: center;
+        border-radius: 7px;
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+      .account-limits-trigger-copy {
+        min-width: 0;
+        display: grid;
+        gap: 2px;
+      }
+      .account-limits-trigger-text {
+        font-weight: 680;
+      }
+      .account-limits-trigger-caption {
+        overflow: hidden;
+        color: var(--text-muted);
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .account-limits-arrow {
+        color: var(--text-muted);
+        transition: transform .16s ease;
+      }
+      .account-limits-trigger[aria-expanded="true"] .account-limits-arrow {
+        transform: rotate(90deg);
+      }
+      .account-limits-content {
+        display: grid;
+        gap: 10px;
+      }
       .account-limit-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -2732,13 +2795,39 @@
       }
       .account-limit-card {
         display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
         gap: 8px;
         padding: 12px;
       }
+      .account-limit-card-left {
+        min-width: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .account-limit-card-copy {
+        min-width: 0;
+        display: grid;
+        gap: 3px;
+      }
+      .account-limit-card-label,
       .account-limit-card-title {
         color: var(--text-muted);
         font-size: 12px;
         font-weight: 650;
+      }
+      .account-limit-card-badge {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface);
+        color: var(--text-muted);
+        font-size: 12px;
+        line-height: 1.2;
+        padding: 3px 7px;
+      }
+      .account-limit-card-right {
+        justify-self: end;
       }
       .account-limit-card-value {
         font-size: 24px;
