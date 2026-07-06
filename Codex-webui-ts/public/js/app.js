@@ -3999,6 +3999,65 @@ const CLIENT_BUILD = '20260706-project-actions';
         projectsEl.appendChild(categoryList);
         exposeDebugState();
       }
+      async function createProjectFolder(parentPath = '') {
+        const parent = String(parentPath || currentProjectRootPath || currentWorkdir || projectPathInput.value || '').trim();
+        if (!parent) {
+          await openProjectModal();
+          return;
+        }
+        const name = window.prompt(`新建项目文件夹\n位置：${parent}`, '新项目');
+        if (name == null) return;
+        const trimmed = name.trim();
+        if (!trimmed) {
+          addSystem('项目名称不能为空。', true);
+          return;
+        }
+        try {
+          const response = await fetch('/project/create', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ parentPath: parent, name: trimmed }) });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || data.ok === false) throw new Error(data.error || `HTTP ${response.status}`);
+          restoreWorkspaceRoot(data.path || data.workdir);
+          currentProjectRootPath = data.root?.path || data.workdir || data.path || currentProjectRootPath;
+          currentWorkdir = data.workdir || data.path || currentWorkdir;
+          resetToEmptyProjectSession(currentWorkdir, '新建项目');
+          closeMobileSidebar();
+          await Promise.all([loadSessions(), loadProjects()]);
+        } catch (error) {
+          addSystem(`新建项目失败：${error.message || error}`, true);
+        }
+      }
+      async function renameProjectFolder(project) {
+        const oldPath = String(project?.workdir || '').trim();
+        if (!oldPath) return;
+        const name = window.prompt('重命名项目文件夹', projectDisplayName(oldPath));
+        if (name == null) return;
+        const trimmed = name.trim();
+        if (!trimmed) {
+          addSystem('项目名称不能为空。', true);
+          return;
+        }
+        try {
+          const response = await fetch('/project/rename', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ path: oldPath, name: trimmed }) });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || data.ok === false) throw new Error(data.error || `HTTP ${response.status}`);
+          const newPath = data.workdir || data.path || oldPath;
+          const oldKey = normalizeSessionPath(oldPath);
+          const newKey = normalizeSessionPath(newPath);
+          if (expandedProjectPaths.delete(oldKey)) expandedProjectPaths.add(newKey);
+          if (expandedProjectThreadLists.delete(oldKey)) expandedProjectThreadLists.add(newKey);
+          hiddenProjectPaths.delete(oldKey);
+          saveExpandedProjectPaths();
+          saveHiddenProjectPaths();
+          if (sameProjectPath(currentProjectRootPath, oldPath)) currentProjectRootPath = data.root?.path || newPath;
+          if (sameProjectPath(currentWorkdir, oldPath)) {
+            currentWorkdir = newPath;
+            updateComposerContext();
+          }
+          await Promise.all([loadSessions(), loadProjects()]);
+        } catch (error) {
+          addSystem(`重命名项目失败：${error.message || error}`, true);
+        }
+      }
       async function openProjectFolder(workdir) {
         const target = String(workdir || '').trim();
         if (!target) {
@@ -4939,6 +4998,7 @@ const CLIENT_BUILD = '20260706-project-actions';
       mobileSidebarBtn.addEventListener('click', openMobileSidebar);
       sidebarBackdrop.addEventListener('click', closeMobileSidebar);
       openFolderBtn.addEventListener('click', () => openProjectModal());
+      createProjectBtn.addEventListener('click', () => createProjectFolder());
       restoreHistoryBtn?.addEventListener('click', openRecycleRestoreDialog);
       openAccountBtn?.addEventListener('click', () => openAccountPanel().catch((error) => setAccountStatus(`账号面板打开失败：${error.message || error}`, true)));
       skillsTabPlugins.addEventListener('click', () => { skillsState.activeTab = 'plugins'; skillsState.managerOpen = false; renderSkillsPanel(); });
