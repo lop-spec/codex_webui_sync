@@ -1,0 +1,6 @@
+{
+  "owner": "lop-spec",
+  "repo": "codex_webui_sync",
+  "branch": "main",
+  "note": "Use github-sync.config.local.json for machine-local target settings. Tokens must come from GITHUB_TOKEN or GITHUB_SYNC_TOKEN."
+}

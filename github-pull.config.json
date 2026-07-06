@@ -1,0 +1,25 @@
+{
+  "owner": "lop-spec",
+  "repo": "codex_webui_sync",
+  "branch": "main",
+  "intervalMs": 30000,
+  "maxApplyPerRun": 300,
+  "protectedPaths": [
+    ".codex/**",
+    ".agents/**",
+    "logs/**",
+    "outputs/**",
+    "**/logs/**",
+    "**/outputs/**",
+    "**/history/**",
+    "**/sessions/**",
+    "**/auth/**",
+    "codex/rules/default.rules",
+    "codex/skills/.system/**",
+    "**/.system/**",
+    "codex/config/developer_instructions.mirror.toml",
+    "**/config.toml"
+  ],
+  "protectedTerms": [],
+  "protectedRuleTerms": []
+}
