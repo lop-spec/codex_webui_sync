@@ -1,7 +1,8 @@
-const CLIENT_BUILD = '20260706-project-actions';
+const CLIENT_BUILD = '20260706-project-window';
       document.documentElement.dataset.webuiBuild = CLIENT_BUILD;
       const DEBUG_NO_EVENTS = new URLSearchParams(location.search).has('debug_no_events');
       const SIDEBAR_VISIBLE_LIMIT = 10;
+      const PROJECT_THREAD_RECENT_WINDOW_MS = 30 * 60 * 1000;
       const COMPOSER_DRAFT_KEY = 'plusComposerDraft';
 
       const $ = (id) => document.getElementById(id);
@@ -2817,6 +2818,23 @@ const CLIENT_BUILD = '20260706-project-actions';
         const hidden = Math.max(0, total - SIDEBAR_VISIBLE_LIMIT);
         return expanded ? `收起为 ${SIDEBAR_VISIBLE_LIMIT} ${noun}` : `显示剩余 ${hidden} ${noun}`;
       }
+      function projectThreadVisibleCollapsed(thread, now = Date.now()) {
+        const time = sessionTimeMs(thread);
+        return Boolean(
+          isRunningSession(thread)
+          || sameSessionPath(thread?.path, currentResumePath)
+          || (time > 0 && now - time <= PROJECT_THREAD_RECENT_WINDOW_MS)
+        );
+      }
+      function visibleProjectThreads(threads, expanded, searchActive) {
+        if (searchActive || expanded) return threads;
+        const now = Date.now();
+        return (threads || []).filter((thread) => projectThreadVisibleCollapsed(thread, now));
+      }
+      function projectThreadOverflowLabel(total, visibleCount, expanded) {
+        const hidden = Math.max(0, total - visibleCount);
+        return expanded ? '收起到近 30 分钟' : `显示剩余 ${hidden} 条项目会话`;
+      }
       function createSidebarOverflowButton(label, onClick) {
         const button = document.createElement('button');
         button.type = 'button';
@@ -3966,13 +3984,13 @@ const CLIENT_BUILD = '20260706-project-actions';
             const threadList = document.createElement('ul');
             threadList.className = 'workspace-thread-list';
             const threadListExpanded = searchActive || expandedProjectThreadLists.has(key);
-            const visibleThreads = threadListExpanded ? threads : threads.slice(0, SIDEBAR_VISIBLE_LIMIT);
+            const visibleThreads = visibleProjectThreads(threads, threadListExpanded, searchActive);
             visibleThreads.forEach((thread) => threadList.appendChild(createProjectThreadItem(thread, p.workdir)));
-            if (!searchActive && threads.length > SIDEBAR_VISIBLE_LIMIT) {
+            if (!searchActive && (threadListExpanded || visibleThreads.length < threads.length)) {
               const overflow = document.createElement('li');
               overflow.className = 'workspace-thread-overflow';
               overflow.appendChild(createSidebarOverflowButton(
-                sidebarOverflowLabel(threads.length, threadListExpanded, '条项目会话'),
+                projectThreadOverflowLabel(threads.length, visibleThreads.length, threadListExpanded),
                 () => toggleProjectThreadListExpanded(p.workdir)
               ));
               threadList.appendChild(overflow);
