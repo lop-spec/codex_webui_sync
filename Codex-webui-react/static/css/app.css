@@ -2378,6 +2378,31 @@
         color: var(--text);
         font-size: 13px;
       }
+      .recycle-restore-filter {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--text-muted);
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+      .recycle-restore-filter input {
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--text);
+        font: inherit;
+      }
+      .recycle-restore-filter input::placeholder {
+        color: var(--text-muted);
+      }
       .recycle-restore-list {
         display: grid;
         gap: 8px;
