@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
+export const SYNC_SCOPE_SCHEMA_VERSION = 2;
 
 export const DEFAULT_CONFIG = {
   owner: '',
@@ -407,9 +408,28 @@ function syncPathCategory(relPath) {
   return 'source';
 }
 
+export function portableScopeHash(config = DEFAULT_CONFIG) {
+  const externalRoots = (config.externalRoots || []).map((item) => ({
+    repoPath: toPosixPath(item.repoPath || ''),
+    include: (item.include || []).map(toPosixPath).sort(),
+    exclude: (item.exclude || []).map(toPosixPath).sort()
+  })).sort((a, b) => a.repoPath.localeCompare(b.repoPath));
+  const payload = {
+    version: SYNC_SCOPE_SCHEMA_VERSION,
+    runtimeRoot: runtimeRootPath(config),
+    include: (config.include || []).map(toPosixPath).sort(),
+    exclude: (config.exclude || []).map(toPosixPath).sort(),
+    externalRoots,
+    configMirrorRepoPath: toPosixPath(config.configMirror?.repoPath || '')
+  };
+  return createHash('sha256').update(JSON.stringify(payload)).digest('hex').slice(0, 24);
+}
+
 function manifestBuffer(rootDir, config, snapshot, source) {
   const manifest = {
-    version: 1,
+    version: 2,
+    scopeSchemaVersion: SYNC_SCOPE_SCHEMA_VERSION,
+    scopeHash: portableScopeHash(config),
     source,
     generatedAt: new Date().toISOString(),
     fullSnapshot: true,

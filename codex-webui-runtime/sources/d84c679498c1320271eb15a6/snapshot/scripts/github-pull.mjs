@@ -13,6 +13,7 @@ import {
   localPathForSyncPath,
   localSourceInfo,
   loadConfig,
+  portableScopeHash,
   runtimeRootPath,
   toPosixPath
 } from './github-sync.mjs';
@@ -355,15 +356,33 @@ async function remoteFileContent(pullConfig, file) {
 
 async function remoteSourceInfos(syncConfig, pullConfig, remoteSnapshot) {
   const out = new Map();
-  const sourceFiles = remoteSnapshot.files
+  const parsedFiles = remoteSnapshot.files
     .map((file) => ({ file, parsed: parseRuntimeSourcePath(syncConfig, pullConfig, file.path) }))
-    .filter((item) => item.parsed?.kind === 'source');
+    .filter((item) => item.parsed);
+  const sourceFiles = parsedFiles.filter((item) => item.parsed.kind === 'source');
   for (const { file, parsed } of sourceFiles) {
     try {
       const content = await remoteFileContent(pullConfig, file);
       out.set(parsed.sourceId, JSON.parse(content.toString('utf8')));
     } catch {
       out.set(parsed.sourceId, { sourceId: parsed.sourceId, sourceName: parsed.sourceId, updatedAt: '' });
+    }
+  }
+  const manifestFiles = parsedFiles.filter((item) => item.parsed.kind === 'manifest');
+  for (const { file, parsed } of manifestFiles) {
+    try {
+      const content = await remoteFileContent(pullConfig, file);
+      const manifest = JSON.parse(content.toString('utf8'));
+      const source = out.get(parsed.sourceId) || { sourceId: parsed.sourceId, sourceName: parsed.sourceId, updatedAt: '' };
+      out.set(parsed.sourceId, {
+        ...source,
+        manifestVersion: manifest.version || 0,
+        scopeSchemaVersion: manifest.scopeSchemaVersion || 0,
+        scopeHash: manifest.scopeHash || ''
+      });
+    } catch {
+      const source = out.get(parsed.sourceId) || { sourceId: parsed.sourceId, sourceName: parsed.sourceId, updatedAt: '' };
+      out.set(parsed.sourceId, { ...source, manifestVersion: 0, scopeSchemaVersion: 0, scopeHash: '' });
     }
   }
   return out;
@@ -374,9 +393,14 @@ function sourceUpdatedAtValue(source) {
   return Number.isFinite(value) ? value : 0;
 }
 
-function selectLatestRemoteSource(sourceInfos, localSource) {
+function isCompatibleRemoteSource(source, syncConfig) {
+  return Boolean(source?.scopeHash && source.scopeHash === portableScopeHash(syncConfig));
+}
+
+function selectLatestRemoteSource(sourceInfos, localSource, syncConfig) {
   const sources = [...sourceInfos.values()]
     .filter((source) => source?.sourceId && !isSameLocalSource(source, localSource))
+    .filter((source) => isCompatibleRemoteSource(source, syncConfig))
     .sort((a, b) => {
       const byTime = sourceUpdatedAtValue(b) - sourceUpdatedAtValue(a);
       if (byTime) return byTime;
@@ -390,7 +414,7 @@ export async function compareRemoteToLocal({ rootDir = root, syncConfig, pullCon
   const protectedMatcher = createProtectedMatcher(pullConfig);
   const localSource = localSourceInfo(rootDir, syncConfig);
   const sourceInfos = await remoteSourceInfos(syncConfig, pullConfig, remoteSnapshot);
-  const remoteSource = selectLatestRemoteSource(sourceInfos, localSource);
+  const remoteSource = selectLatestRemoteSource(sourceInfos, localSource, syncConfig);
   const localFiles = collectLocalPortableFiles(rootDir, syncConfig);
   const localByPath = new Map(localFiles.map((file) => [file.path, file]));
   const remoteFiles = remoteSource
@@ -618,7 +642,7 @@ function printResult(result, mode) {
 
 async function runStatus(rootDir, syncConfig, pullConfig) {
   const remoteSnapshot = await fetchRemoteSnapshot(pullConfig);
-  const result = await compareRemoteToLocal({ rootDir, syncConfig, pullConfig, remoteSnapshot, includeContent: true });
+  const result = await compareRemoteToLocal({ rootDir, syncConfig, pullConfig, remoteSnapshot, includeContent: false });
   return { ok: true, applied: [], localSource: localSourceInfo(rootDir, syncConfig), ...result, state: readJson(path.join(rootDir, pullConfig.statePath), null) };
 }
 

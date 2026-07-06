@@ -1,5 +1,7 @@
 {
-  "version": 1,
+  "version": 2,
+  "scopeSchemaVersion": 2,
+  "scopeHash": "5360ae5eaeb677fed04adfdd",
   "source": {
     "version": 2,
     "sourceId": "d84c679498c1320271eb15a6",
@@ -11,7 +13,7 @@
     "workspacePath": "C:\\Users\\lop\\Documents\\Codex\\github-ui",
     "scope": "source-rules-skills"
   },
-  "generatedAt": "2026-07-06T16:29:44.109Z",
+  "generatedAt": "2026-07-06T16:33:34.711Z",
   "fullSnapshot": true,
   "mergePolicy": {
     "webui-source": "remote-newer-wins-then-verify",
@@ -780,14 +782,14 @@
     },
     {
       "path": "scripts/github-pull.mjs",
-      "sha": "dcd32ccdb5f84382c06896782a55f9902eff2581",
-      "size": 25616,
+      "sha": "29f3bbcbdc46d0ca948fbd42204153f33cc07db3",
+      "size": 26812,
       "category": "runtime-script"
     },
     {
       "path": "scripts/github-sync.mjs",
-      "sha": "3fac2bd48c49289e3f2e3d3681f9f805f2c60899",
-      "size": 41935,
+      "sha": "664a705738c61b8d80859da58abcb1b73759dc41",
+      "size": 42844,
       "category": "runtime-script"
     },
     {
