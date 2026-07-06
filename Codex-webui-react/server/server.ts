@@ -1581,6 +1581,36 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (req.method === 'GET' && url === '/session/recycle-candidates') {
+    if (!requireAuth(req)) return sendJson(res, 401, { ok: false, error: 'Unauthorized' });
+    const days = Number(parsedUrl.searchParams.get('days') || 1);
+    const limit = Number(parsedUrl.searchParams.get('limit') || 80);
+    const h = readHistory();
+    const root = ensureHistoryProject(h);
+    writeHistory(h);
+    return sendJson(res, 200, {
+      ok: true,
+      days: Math.max(1, Math.min(30, Number(days) || 1)),
+      recycleRoot: SESSION_RECYCLE_ROOT,
+      historyProject: root,
+      items: listRecycledSessionCandidates(days, limit)
+    });
+  }
+
+  if (req.method === 'POST' && url === '/session/restore') {
+    if (!requireAuth(req)) return sendJson(res, 401, { ok: false, error: 'Unauthorized' });
+    readJsonBody(req)
+      .then((body) => {
+        const requested = body && (body.recycledPath || body.path);
+        if (!requested || typeof requested !== 'string') return sendJson(res, 400, { ok: false, error: 'Missing recycledPath' });
+        const result = restoreRecycledSession(requested);
+        broadcastStatus();
+        return sendJson(res, 200, { ok: true, ...result });
+      })
+      .catch((error) => sendJson(res, actionError(error).includes('Invalid recycled session path') ? 400 : 500, { ok: false, error: actionError(error) }));
+    return;
+  }
+
   if (req.method === 'DELETE' && url === '/session') {
     if (!requireAuth(req)) { setCORS(res); res.writeHead(401); return res.end(); }
     let body = '';
