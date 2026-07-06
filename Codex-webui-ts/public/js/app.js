@@ -2692,6 +2692,7 @@ const CLIENT_BUILD = '20260706-project-window';
           codexRunning = typeof data.running === 'boolean' ? data.running : true;
           if (data.status === 'started' || data.status === 'steered') recordTurnStarted(activeRuntimeResumePath);
           if (Array.isArray(data.queue)) queuedFollowUps = data.queue;
+          if ('guidance' in data) applyGuidanceState(data.guidance);
           const messageText = state.row.querySelector('.message-text');
           if (messageText) messageText.innerHTML = renderMarkdownBlocks(editedText);
           trimTimelineAfter(state.row);
@@ -4495,6 +4496,7 @@ const CLIENT_BUILD = '20260706-project-window';
         const data = await response.json().catch(() => ({}));
         if (!response.ok || data.ok === false) throw new Error(data.error || `HTTP ${response.status}`);
         if (Array.isArray(data.queue)) queuedFollowUps = data.queue;
+        if ('guidance' in data) applyGuidanceState(data.guidance);
         codexRunning = Boolean(data.running);
         updateComposerControls();
         renderQueuePanel();
@@ -4653,10 +4655,14 @@ const CLIENT_BUILD = '20260706-project-window';
           if (data.resume_path) currentResumePath = data.resume_path;
           activeRuntimeResumePath = data.resume_path || activeRuntimeResumePath || currentResumePath;
           if (typeof data.running === 'boolean') codexRunning = data.running;
-          else if (data.status === 'started' || data.status === 'steered' || data.status === 'queued') codexRunning = true;
+          else if (data.status === 'started' || data.status === 'steered' || data.status === 'queued' || data.status === 'guidance_pending') codexRunning = true;
           if (data.status === 'started' || data.status === 'steered') recordTurnStarted(activeRuntimeResumePath);
           if (Array.isArray(data.queue)) {
             queuedFollowUps = data.queue;
+          }
+          if ('guidance' in data) applyGuidanceState(data.guidance);
+          if (data.status === 'guidance_pending') {
+            deliverAppNotification({ title: '引导已接收', body: '正在后台合并到当前回复，失败不会自动重跑。', kind: 'info', minVisible: false });
           }
           updateComposerControls();
           renderQueuePanel();
@@ -4818,6 +4824,7 @@ const CLIENT_BUILD = '20260706-project-window';
             if (data.running && !codexRunning) recordTurnStarted(activeRuntimeResumePath);
             codexRunning = Boolean(data.running);
             queuedFollowUps = Array.isArray(data.queue) ? data.queue : [];
+            if ('guidance' in data) applyGuidanceState(data.guidance);
             if ('pendingUserInput' in data) {
               if (data.pendingUserInput) setPendingUserInputRequest(data.pendingUserInput);
               else clearPendingUserInputRequest();
