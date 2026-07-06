@@ -5288,6 +5288,7 @@ const CLIENT_BUILD = '20260706-project-window';
       $('permissionBtn').addEventListener('click', (event) => { event.stopPropagation(); openPermissionMenu().catch((error) => addSystem(`权限菜单打开失败：${error.message || error}`, true)); });
       $('localModeBtn').addEventListener('click', () => addSystem('当前会话运行在本地 Codex CLI。'));
       $('openMemoryBtn').addEventListener('click', async () => { await loadMemory(); openModal('memoryModal'); });
+      accountLimitsToggle?.addEventListener('click', () => setAccountLimitsExpanded(!accountLimitsExpanded));
       accountRefreshBtn?.addEventListener('click', () => loadAccountPanel());
       accountLoginBtn?.addEventListener('click', () => startAccountLogin().catch((error) => setAccountStatus(`登录启动失败：${error.message || error}`, true)));
       accountLogoutBtn?.addEventListener('click', () => logoutAccount().then(loadAccountPanel).catch((error) => setAccountStatus(`退出失败：${error.message || error}`, true)));
