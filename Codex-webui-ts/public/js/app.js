@@ -18,6 +18,7 @@ const CLIENT_BUILD = '20260706-transfer-merge';
       const pinnedSessionsEl = $('pinnedSessions');
       const projectsEl = $('projects');
       const openFolderBtn = $('openFolderBtn');
+      const restoreHistoryBtn = $('restoreHistoryBtn');
       const openAccountBtn = $('openAccountBtn');
       const historyBackBtn = $('historyBackBtn');
       const historyForwardBtn = $('historyForwardBtn');
@@ -325,6 +326,7 @@ const CLIENT_BUILD = '20260706-transfer-merge';
           workspaceThreadItems: document.querySelectorAll('.workspace-thread-item').length,
           workspaceRootMenus: document.querySelectorAll('.workspace-root-menu').length,
           workspaceCleanupOpen: Boolean(document.getElementById('workspaceCleanupModal')),
+          recycleRestoreOpen: Boolean(document.getElementById('recycleRestoreModal')),
           hiddenProjectRoots: hiddenProjectPaths.size,
           expandedProjectCategories: expandedProjectCategories.size,
           expandedProjectThreadLists: expandedProjectThreadLists.size,
