@@ -1,4 +1,4 @@
-const CLIENT_BUILD = '20260706-transfer-merge';
+const CLIENT_BUILD = '20260706-manual-projects';
       document.documentElement.dataset.webuiBuild = CLIENT_BUILD;
       const DEBUG_NO_EVENTS = new URLSearchParams(location.search).has('debug_no_events');
       const SIDEBAR_VISIBLE_LIMIT = 10;
@@ -2219,16 +2219,22 @@ const CLIENT_BUILD = '20260706-transfer-merge';
         if (!hiddenProjectPaths.delete(key)) return;
         saveHiddenProjectPaths();
       }
-      function removeWorkspaceRoot(project) {
+      async function removeWorkspaceRoot(project) {
         if (!project?.workdir) return;
         if (sameProjectPath(project.workdir, currentProjectRootPath || currentWorkdir)) {
           addSystem('当前项目正在使用，先切换到其他项目后再从列表移除。', true);
           return;
         }
-        hiddenProjectPaths.add(normalizeSessionPath(project.workdir));
+        const response = await fetch('/project/root', { method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ path: project.workdir }) });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok === false) throw new Error(data.error || `HTTP ${response.status}`);
+        const key = normalizeSessionPath(project.workdir);
+        hiddenProjectPaths.delete(key);
         saveHiddenProjectPaths();
+        projectRootsCache = projectRootsCache.filter((root) => !sameProjectPath(root.path, project.workdir));
+        projectsCache = projectsCache.filter((item) => !sameProjectPath(item.workdir, project.workdir));
         renderProjects();
-        addSystem(`已从项目列表移除：${project.workdir}`);
+        await loadProjects();
       }
       function projectRootHidden(project) {
         if (!project?.workdir) return false;
@@ -3613,7 +3619,7 @@ const CLIENT_BUILD = '20260706-transfer-merge';
             if (action === 'new-thread') await openProjectFolder(project.workdir);
             if (action === 'open-explorer') await openLocalPath(project.workdir);
             if (action === 'cleanup-sessions') showWorkspaceSessionCleanupDialog(project);
-            if (action === 'remove-root') removeWorkspaceRoot(project);
+            if (action === 'remove-root') await removeWorkspaceRoot(project);
           } catch (error) {
             addSystem(`项目操作失败：${error.message || error}`, true);
           } finally {
