@@ -23,5 +23,17 @@
     "**/config.toml"
   ],
   "protectedTerms": [],
-  "protectedRuleTerms": []
+  "protectedRuleTerms": [],
+  "verifyAfterApply": true,
+  "verifyCommands": [
+    {
+      "name": "github-sync-focused-tests",
+      "command": "node",
+      "args": [
+        "--test",
+        "tests/github-sync.test.mjs",
+        "tests/github-pull.test.mjs"
+      ]
+    }
+  ]
 }

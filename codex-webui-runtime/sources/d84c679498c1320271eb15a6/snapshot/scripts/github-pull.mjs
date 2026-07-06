@@ -45,7 +45,15 @@ export const DEFAULT_PULL_CONFIG = {
     '**/config.toml'
   ],
   protectedTerms: [],
-  protectedRuleTerms: []
+  protectedRuleTerms: [],
+  verifyAfterApply: true,
+  verifyCommands: [
+    {
+      name: 'github-sync-focused-tests',
+      command: process.execPath,
+      args: ['--test', 'tests/github-sync.test.mjs', 'tests/github-pull.test.mjs']
+    }
+  ]
 };
 
 function stamp() {
@@ -110,6 +118,8 @@ export function loadPullConfig(rootDir = root, env = process.env) {
   pull.protectedTerms = mergeGuardList(DEFAULT_PULL_CONFIG.protectedTerms, pull.protectedTerms);
   pull.protectedRuleTerms = mergeGuardList(DEFAULT_PULL_CONFIG.protectedRuleTerms, pull.protectedRuleTerms);
   pull.applyDeletes = parseBool(env.GITHUB_PULL_APPLY_DELETES, pull.applyDeletes || false);
+  pull.verifyAfterApply = parseBool(env.GITHUB_PULL_VERIFY_AFTER_APPLY, pull.verifyAfterApply ?? DEFAULT_PULL_CONFIG.verifyAfterApply);
+  pull.verifyCommands = normalizeVerifyCommands(pull.verifyCommands);
   return { syncConfig, pull };
 }
 
@@ -223,6 +233,77 @@ function verifyRuntimeContent(relPath, content) {
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
+}
+
+function trimOutput(text, max = 4000) {
+  const value = String(text || '').trim();
+  if (value.length <= max) return value;
+  return value.slice(0, max) + '\n... truncated ...';
+}
+
+function normalizeVerifyCommands(commands = []) {
+  if (!Array.isArray(commands)) return [];
+  return commands
+    .map((item) => {
+      if (typeof item === 'string') return { name: item, command: item, args: [] };
+      if (!isObject(item) || !item.command) return null;
+      return {
+        name: String(item.name || item.command),
+        command: String(item.command),
+        args: Array.isArray(item.args) ? item.args.map(String) : []
+      };
+    })
+    .filter(Boolean);
+}
+
+export function runPostApplyVerify(rootDir, pullConfig) {
+  if (!pullConfig.verifyAfterApply || !pullConfig.verifyCommands?.length) {
+    return { ok: true, skipped: true, commands: [] };
+  }
+  const commands = [];
+  for (const command of pullConfig.verifyCommands) {
+    const result = spawnSync(command.command, command.args || [], {
+      cwd: rootDir,
+      encoding: 'utf8',
+      windowsHide: true
+    });
+    const item = {
+      name: command.name || command.command,
+      command: command.command,
+      args: command.args || [],
+      status: result.status,
+      signal: result.signal || null,
+      stdout: trimOutput(result.stdout),
+      stderr: trimOutput(result.stderr)
+    };
+    commands.push(item);
+    if (result.error || result.status !== 0) {
+      return {
+        ok: false,
+        failed: item,
+        detail: result.error ? result.error.message : (item.stderr || item.stdout || `exit ${result.status}`),
+        commands
+      };
+    }
+  }
+  return { ok: true, commands };
+}
+
+export function rollbackAppliedFiles({ rootDir, syncConfig, pullConfig, applied }) {
+  const rolledBack = [];
+  for (const item of [...(applied || [])].reverse()) {
+    const localPath = localPathForSyncPath(rootDir, syncConfig, item.path);
+    if (item.backup) {
+      const backupPath = path.join(rootDir, item.backup);
+      fs.mkdirSync(path.dirname(localPath), { recursive: true });
+      fs.copyFileSync(backupPath, localPath);
+      rolledBack.push({ path: item.path, restoredFrom: item.backup });
+    } else {
+      fs.rmSync(localPath, { force: true });
+      rolledBack.push({ path: item.path, removed: true });
+    }
+  }
+  return rolledBack.reverse();
 }
 
 function writeJson(filePath, data) {
@@ -409,6 +490,9 @@ export async function pullOnce({ rootDir = root, syncConfig, pullConfig, dryRun 
   const runId = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14);
   const applied = [];
   const runtimeRejected = [];
+  let postApplyVerify = { ok: true, skipped: true, commands: [] };
+  let rolledBack = [];
+  let postApplyRejected = [];
   for (const item of comparison.changed) {
     let remoteContent = item.remoteContent;
     if (!remoteContent) remoteContent = await fetchBlobContent(pullConfig, item.remoteSha);
@@ -434,14 +518,31 @@ export async function pullOnce({ rootDir = root, syncConfig, pullConfig, dryRun 
     applied.push({ path: item.path, remoteSha: item.remoteSha, backup: item.existsLocal ? toPosixPath(path.relative(rootDir, backupPathFor(rootDir, pullConfig, item.path, runId))) : null });
   }
 
+  if (applied.length) {
+    postApplyVerify = runPostApplyVerify(rootDir, pullConfig);
+    if (!postApplyVerify.ok) {
+      rolledBack = rollbackAppliedFiles({ rootDir, syncConfig, pullConfig, applied });
+      postApplyRejected = applied.map((item) => ({
+        path: item.path,
+        remoteSha: item.remoteSha,
+        reason: 'post-apply-verify-failed',
+        detail: postApplyVerify.detail
+      }));
+      applied.length = 0;
+    }
+  }
+
   const state = {
     headSha: comparison.headSha,
     remoteSource,
     localSource: source,
     applied,
+    postApplyVerify,
+    rolledBack,
     protectedChanged: [
       ...comparison.protectedChanged.map(({ path, localSha, remoteSha, reason }) => ({ path, localSha, remoteSha, reason })),
-      ...runtimeRejected
+      ...runtimeRejected,
+      ...postApplyRejected
     ],
     missingRemote: comparison.missingRemote
   };
@@ -453,7 +554,9 @@ export async function pullOnce({ rootDir = root, syncConfig, pullConfig, dryRun 
     remoteSource,
     localSource: source,
     ...comparison,
-    protectedChanged: [...comparison.protectedChanged, ...runtimeRejected],
+    postApplyVerify,
+    rolledBack,
+    protectedChanged: [...comparison.protectedChanged, ...runtimeRejected, ...postApplyRejected],
     changed: comparison.changed.filter((item) => !runtimeRejected.some((rejected) => rejected.path === item.path && rejected.remoteSha === item.remoteSha))
   };
 }
@@ -504,6 +607,7 @@ function printResult(result, mode) {
   if (summary.skipReason) console.log(`[github-pull] skipped: ${summary.skipReason}`);
   if (result.remoteSource?.sourceId) console.log(`[github-pull] remote source: ${result.remoteSource.sourceName || 'unknown'} (${result.remoteSource.sourceId})`);
   if (result.localSource?.sourceId) console.log(`[github-pull] local source: ${result.localSource.sourceName || 'unknown'} (${result.localSource.sourceId})`);
+  if (result.postApplyVerify?.ok === false) console.log(`[github-pull] post-apply verify failed: ${result.postApplyVerify.failed?.name || 'verify'}`);
   if (result.applied?.length) {
     for (const item of result.applied.slice(0, 40)) console.log(`  applied ${item.path}`);
   }
