@@ -1,4 +1,4 @@
-const CLIENT_BUILD = '20260706-project-window';
+const CLIENT_BUILD = '20260706-account-parity';
       document.documentElement.dataset.webuiBuild = CLIENT_BUILD;
       const DEBUG_NO_EVENTS = new URLSearchParams(location.search).has('debug_no_events');
       const SIDEBAR_VISIBLE_LIMIT = 10;
