@@ -3573,6 +3573,14 @@ const CLIENT_BUILD = '20260706-manual-projects';
       function recycleRestoreTime(item) {
         return Number(item?.archiveTime || item?.mtimeMs || item?.sessionTime || 0) || Date.now();
       }
+      function recycleRestoreDays(state) {
+        const value = Number.parseInt(String(state?.days || 1), 10);
+        return [1, 3, 7, 14, 30].includes(value) ? value : 1;
+      }
+      function recycleRestoreDayOptions(state) {
+        const selected = recycleRestoreDays(state);
+        return [1, 3, 7, 14, 30].map((days) => `<option value="${days}" ${selected === days ? 'selected' : ''}>${days} 天</option>`).join('');
+      }
       function renderRecycleRestoreItems(state) {
         if (state.loading) {
           return '<div class="recycle-restore-empty">正在读取 Codex_RECYCLE...</div>';
@@ -3582,7 +3590,7 @@ const CLIENT_BUILD = '20260706-manual-projects';
         }
         if (!state.items.length) {
           const query = String(state.query || '').trim();
-          return `<div class="recycle-restore-empty">${query ? `没有匹配“${escapeHtml(query)}”的可恢复历史对话` : '近 1 天没有可恢复的历史对话'}</div>`;
+          return `<div class="recycle-restore-empty">${query ? `没有匹配“${escapeHtml(query)}”的可恢复历史对话` : `近 ${recycleRestoreDays(state)} 天没有可恢复的历史对话`}</div>`;
         }
         return state.items.map((item) => {
           const restoring = state.restoringPath && normalizeSessionPath(state.restoringPath) === normalizeSessionPath(item.recycledPath);
@@ -3607,7 +3615,7 @@ const CLIENT_BUILD = '20260706-manual-projects';
             <div class="dialog-head">
               <div>
                 <strong>恢复历史对话</strong>
-                <div class="recycle-restore-headline">默认读取近 1 天 Codex_RECYCLE，并恢复到历史对话项目</div>
+                <div class="recycle-restore-headline">默认读取近 1 天 Codex_RECYCLE，可切换时间范围并恢复到历史对话项目</div>
               </div>
               <button class="icon-btn" data-action="close-recycle-restore" aria-label="关闭">×</button>
             </div>
@@ -3617,11 +3625,19 @@ const CLIENT_BUILD = '20260706-manual-projects';
                 <strong>${escapeHtml(state.historyProject?.name || '历史对话')}</strong>
                 <small title="${escapeAttr(state.historyProject?.path || '')}">${escapeHtml(state.historyProject?.path || '等待服务端创建')}</small>
               </div>
-              <label class="recycle-restore-filter">
-                <span>过滤</span>
-                <input id="recycleRestoreQuery" data-action="filter-recycle-restore" type="search" value="${escapeAttr(state.query || '')}" placeholder="输入关键字过滤历史会话" autocomplete="off" />
+              <div class="recycle-restore-filter">
+                <label class="recycle-restore-filter-field" for="recycleRestoreQuery">
+                  <span>过滤</span>
+                  <input id="recycleRestoreQuery" data-action="filter-recycle-restore" type="search" value="${escapeAttr(state.query || '')}" placeholder="输入关键字过滤历史会话" autocomplete="off" />
+                </label>
+                <label class="recycle-restore-filter-field recycle-restore-filter-range" for="recycleRestoreDays">
+                  <span>范围</span>
+                  <select id="recycleRestoreDays" data-action="set-recycle-days" aria-label="选择恢复历史对话读取天数">
+                    ${recycleRestoreDayOptions(state)}
+                  </select>
+                </label>
                 <small>${state.loading ? '读取中' : `${state.items.length} 条`}</small>
-              </label>
+              </div>
               <div class="recycle-restore-list">${renderRecycleRestoreItems(state)}</div>
             </div>
             <div class="dialog-foot">
@@ -3636,7 +3652,7 @@ const CLIENT_BUILD = '20260706-manual-projects';
         state.error = '';
         renderRecycleRestoreDialog(overlay, state);
         try {
-          const params = new URLSearchParams({ days: '1', limit: '200' });
+          const params = new URLSearchParams({ days: String(recycleRestoreDays(state)), limit: '200' });
           if (String(state.query || '').trim()) params.set('q', String(state.query || '').trim());
           const response = await fetch(`/session/recycle-candidates?${params.toString()}`, { cache: 'no-store' });
           const data = await response.json().catch(() => ({}));
@@ -3677,7 +3693,7 @@ const CLIENT_BUILD = '20260706-manual-projects';
         overlay.className = 'modal open recycle-restore-modal';
         overlay.id = 'recycleRestoreModal';
         document.body.appendChild(overlay);
-        const state = { loading: true, error: '', items: [], historyProject: null, restoringPath: '', query: '', filterTimer: 0 };
+        const state = { loading: true, error: '', items: [], historyProject: null, restoringPath: '', query: '', days: 1, filterTimer: 0 };
         overlay.addEventListener('click', (event) => {
           if (event.target === overlay) removeRecycleRestoreDialog(state);
         });
@@ -3690,6 +3706,16 @@ const CLIENT_BUILD = '20260706-manual-projects';
             state.filterTimer = 0;
             loadRecycleRestoreCandidates(state, overlay);
           }, 250);
+        });
+        overlay.addEventListener('change', (event) => {
+          const target = event.target;
+          if (!target?.matches?.('[data-action="set-recycle-days"]')) return;
+          state.days = recycleRestoreDays({ days: target.value });
+          if (state.filterTimer) {
+            window.clearTimeout(state.filterTimer);
+            state.filterTimer = 0;
+          }
+          loadRecycleRestoreCandidates(state, overlay);
         });
         overlay.addEventListener('click', async (event) => {
           const actionTarget = event.target && event.target.closest ? event.target.closest('[data-action]') : null;
