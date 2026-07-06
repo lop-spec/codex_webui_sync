@@ -29,6 +29,7 @@
 | `src/services/transfer-store.ts` Android companion inbox mirror and `localPath` metadata | `server/services/transfer-store.ts` | verified-equivalent | Copied `androidInbox` helpers; TS test covers Android upload mirror and `localPath`; parity checks target declarations |
 | `src/server.ts` `/health` network URLs and `/transfer/files/:id/open-folder` | `server/server.ts` | verified-equivalent | Copied routes/helpers; default Web port adjusted to `5155`; TS tests cover health fields and open-folder endpoint |
 | `src/server.ts` recycle restore scan, summary extraction, and `/session/restore` | `server/server.ts` | verified-equivalent | Ported helpers and routes; default history project is `历史对话`; parity checks route/helper declarations |
+| `src/server.ts` manual project roots and `DELETE /project/root` | `server/server.ts` | verified-equivalent | Copied `validHistoryRoots`-only project listing, `projectListRootForWorkdir`, and persistent root removal; TS tests cover registered roots and delete behavior |
 | `src/utils/*` and `src/types.ts` | `server/utils/*`, `server/types.ts` | verified-equivalent | Copied |
 | `src/public-tunnel.ts` local/public watchdog | `server/public-tunnel.ts` | verified-equivalent | Copied; default port changed to `5155`, retains health monitor, web restart, and public tunnel restart |
 
@@ -41,6 +42,7 @@
 | `public/js/app.js` sessions, projects, composer, queue, user input, settings, account, preview, skills, MCP, memory, SSE, timeline | `static/js/app.js` copied to `/js/app.js` and loaded by React | verified-equivalent | Copied from source project; Git/terminal bindings guarded |
 | `public/index.html`, `public/js/app.js`, `public/css/app.css` recycle restore dialog | `src/client/legacy-shell.ts`, `static/js/app.js`, `public/js/app.js`, `static/css/app.css`, `public/css/app.css` | verified-equivalent | Shell exposes `restoreHistoryBtn`; JS calls `/session/recycle-candidates` and `/session/restore`; styles copied |
 | `public/js/app.js` assistant reply copy buttons | `static/js/app.js`, `public/js/app.js` | verified-equivalent | Copied source functions and MutationObserver wiring; static tests assert copy helpers and button class |
+| `public/js/app.js` silent persistent project root removal | `static/js/app.js`, `public/js/app.js` | verified-equivalent | Copied `/project/root` delete call and removed success toast; TS static tests assert no removal notification text |
 | `public/js/transfer.js` provider chain, upload/download, transfer conversation | `static/js/transfer.js` copied to `/js/transfer.js` and loaded by React | verified-equivalent | Copied from source project |
 | `public/index.html` transfer mode/LAN info controls | `src/client/legacy-shell.ts`, `public/index.html` | verified-equivalent | Legacy shell regenerated from source HTML; parity checks `transferMode` and `transferLanInfo` ids |
 | `public/js/transfer.js` transfer mode, LAN health display, open-folder action | `static/js/transfer.js`, `public/js/transfer.js` | verified-equivalent | Copied source logic; static tests assert `plusTransferMode`, `/health`, `/path/open`, and `open-folder` |
