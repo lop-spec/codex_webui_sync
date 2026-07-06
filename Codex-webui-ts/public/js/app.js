@@ -4146,21 +4146,25 @@ const CLIENT_BUILD = '20260706-manual-projects';
       async function loadTranscript(path, options = {}) {
         const serial = options.serial || ++transcriptSwitchSerial;
         const smooth = options.smooth === true;
+        const transcriptPath = path || currentResumePath || '';
         if (smooth) beginTranscriptTransition();
         try {
-          const endpoint = path ? `/session-messages?path=${encodeURIComponent(path)}` : '/session-messages';
-          const response = await fetch(endpoint);
+          const response = await fetch(transcriptPageEndpoint(transcriptPath), { cache: 'no-store' });
           const data = await response.json();
           if (!response.ok || data.ok === false) throw new Error(data.error || `HTTP ${response.status}`);
           if (serial !== transcriptSwitchSerial) return;
           log.innerHTML = '';
+          transcriptHistoryLoader = null;
+          resetTranscriptPageState(data.current || transcriptPath);
           streamEl = null;
           if (emptyState) log.appendChild(emptyState);
           turnQuestionText.clear();
           latestUserQuestionText = '';
           activeTurnId = '';
           const messages = data.messages || [];
-          messages.forEach((m) => addTimelineItem(m, { scroll: false, sessionPath: path || currentResumePath }));
+          updateTranscriptPageState(data, data.current || transcriptPath);
+          renderTranscriptHistoryLoader();
+          renderTranscriptPageMessages(messages, data.current || transcriptPath);
           if (!messages.length) addSystem('这个会话没有解析到可展示消息。', true);
           ensureNotEmpty();
           scrollToBottom();
@@ -4169,6 +4173,7 @@ const CLIENT_BUILD = '20260706-manual-projects';
         } catch (error) {
           if (serial !== transcriptSwitchSerial) return;
           log.innerHTML = '';
+          resetTranscriptPageState();
           if (emptyState) log.appendChild(emptyState);
           addSystem(`读取会话失败：${error.message || error}`, true);
           if (smooth) finishTranscriptTransition();
