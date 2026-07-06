@@ -1514,18 +1514,6 @@ const CLIENT_BUILD = '20260706-manual-projects';
           window.open(data.url, '_blank', 'noopener');
         }
       }
-      async function showGitDiff() {
-        await openGitPanel();
-        const data = await fetchJsonEndpoint('/git/diff');
-        if (!data.isRepo) {
-          addSystem(`Git：当前工作区不是 Git 仓库。\n${data.workdir || currentWorkdir}\n${data.error || ''}`.trim(), true);
-          return;
-        }
-        const files = (data.files || []).slice(0, 40).map((file) => [file.status, file.path]);
-        const table = files.length ? markdownTable(['状态', '文件'], files) : '当前没有未提交文件。';
-        const diff = data.diff ? `\n\n\`\`\`diff\n${data.diff}\n\`\`\`` : '';
-        addBubble(`Git 状态\n\n分支：${data.branch || '(detached)'}\n仓库：${data.root}\n\n${table}${diff}`, 'agent');
-      }
       function setSkillsActionError(message = '') {
         if (!skillsActionError) return;
         skillsActionError.hidden = !message;
