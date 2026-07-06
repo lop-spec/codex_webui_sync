@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lop TDD Minimal Change"
+  short_description: "Small verified code changes with tests"
+  default_prompt: "Use $lop-tdd-minimal-change for this code change and keep the implementation minimal."

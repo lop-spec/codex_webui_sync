@@ -1,0 +1,42 @@
+{
+  "owner": "lop-spec",
+  "repo": "codex_webui_sync",
+  "branch": "main",
+  "runtimeRoot": "codex-webui-runtime",
+  "intervalMs": 30000,
+  "maxApplyPerRun": 200,
+  "protectedPaths": [
+    "Codex-webui-ts/history.json",
+    "Codex-webui-react/history.json",
+    "codex/rules/default.rules",
+    "codex/skills/.system/**",
+    ".codex/**",
+    ".agents/**",
+    "logs/**",
+    "outputs/**",
+    "**/logs/**",
+    "**/outputs/**",
+    "**/docs/**",
+    "**/history/**",
+    "**/sessions/**",
+    "**/auth/**",
+    "**/package-lock.json",
+    "**/default.rules",
+    "**/.system/**",
+    "**/config.toml"
+  ],
+  "protectedTerms": [],
+  "protectedRuleTerms": [],
+  "verifyAfterApply": true,
+  "verifyCommands": [
+    {
+      "name": "github-sync-focused-tests",
+      "command": "node",
+      "args": [
+        "--test",
+        "tests/github-sync.test.mjs",
+        "tests/github-pull.test.mjs"
+      ]
+    }
+  ]
+}

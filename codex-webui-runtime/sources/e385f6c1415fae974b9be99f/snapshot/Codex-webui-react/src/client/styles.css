@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+}
+
+:root {
+  color-scheme: light;
+  --background: 210 20% 98%;
+  --foreground: 222 28% 13%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 28% 13%;
+  --primary: 220 12% 18%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 210 22% 94%;
+  --secondary-foreground: 222 20% 18%;
+  --muted: 210 20% 94%;
+  --muted-foreground: 215 11% 42%;
+  --accent: 190 30% 90%;
+  --accent-foreground: 196 45% 16%;
+  --destructive: 0 70% 48%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 214 18% 86%;
+  --input: 214 18% 82%;
+  --ring: 196 65% 38%;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: 220 18% 9%;
+  --foreground: 210 20% 96%;
+  --card: 220 16% 13%;
+  --card-foreground: 210 20% 96%;
+  --primary: 190 55% 72%;
+  --primary-foreground: 220 24% 10%;
+  --secondary: 220 14% 20%;
+  --secondary-foreground: 210 20% 94%;
+  --muted: 220 14% 18%;
+  --muted-foreground: 214 12% 67%;
+  --accent: 190 28% 24%;
+  --accent-foreground: 190 45% 88%;
+  --destructive: 0 65% 55%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 220 13% 25%;
+  --input: 220 13% 28%;
+  --ring: 190 70% 62%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+}
+
+button,
+textarea,
+input,
+select {
+  font: inherit;
+}
+
+.message-markdown p {
+  margin: 0 0 0.65rem;
+}
+
+.message-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.message-markdown pre,
+.code-surface {
+  overflow: auto;
+  border-radius: 0.5rem;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted));
+  padding: 0.75rem;
+  font-family: Consolas, "Cascadia Mono", monospace;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.message-markdown code {
+  border-radius: 0.25rem;
+  background: hsl(var(--muted));
+  padding: 0.05rem 0.25rem;
+  font-family: Consolas, "Cascadia Mono", monospace;
+  font-size: 0.9em;
+}

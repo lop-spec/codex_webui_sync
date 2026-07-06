@@ -1,0 +1,29 @@
+{
+  "name": "codex-webui-ts",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "node --check public/js/app.js && node --check public/js/transfer.js && node --check public/js/p2p-phone.js && node --check public/js/p2p-transfer.js && node --check dist/server.js && node --check dist/p2p-helper.js",
+    "parity:check": "node ../scripts/parity-check.mjs",
+    "parity:check:full": "node ../scripts/parity-check.mjs --full",
+    "parity:watch": "node ../scripts/parity-watch.mjs",
+    "parity:watch:full": "node ../scripts/parity-watch.mjs --full",
+    "serve": "node dist/server.js",
+    "p2p": "node dist/p2p-helper.js",
+    "public": "node dist/public-tunnel.js",
+    "app": "node scripts/webui-app.mjs --launch",
+    "app:install": "node scripts/webui-app.mjs --install-shortcuts",
+    "app:switch": "node scripts/webui-app.mjs --install-shortcuts --launch",
+    "benchmark:browser-shells": "node scripts/benchmark-browser-shells.mjs",
+    "test": "node --test --test-concurrency=1 tests/*.test.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.25",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "werift": "^0.23.0"
+  }
+}

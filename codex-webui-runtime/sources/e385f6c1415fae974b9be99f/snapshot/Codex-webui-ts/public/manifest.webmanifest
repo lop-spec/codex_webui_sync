@@ -1,0 +1,20 @@
+{
+  "id": "/?app=1",
+  "name": "Codex WebUI",
+  "short_name": "Codex",
+  "description": "Local Codex conversation workspace.",
+  "start_url": "/?app=1",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#020202",
+  "theme_color": "#020202",
+  "categories": ["developer", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/codex-webui.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,788 @@
+{
+  "version": 1,
+  "source": {
+    "version": 2,
+    "sourceId": "e385f6c1415fae974b9be99f",
+    "sourceName": "machine-e385f6c1",
+    "sourceKind": "machine-workspace-hash",
+    "machineId": "1f4110abfecebd4131ade115",
+    "machineName": "WIN-9P1HOV3SQ0Q",
+    "workspace": "github-ui",
+    "workspacePath": "C:\\Users\\Administrator\\Documents\\Codex\\github-ui",
+    "scope": "source-rules-skills"
+  },
+  "generatedAt": "2026-07-06T16:27:32.894Z",
+  "fullSnapshot": true,
+  "mergePolicy": {
+    "webui-source": "remote-newer-wins-then-verify",
+    "rules": "remote-wins-preserve-local-new-lop",
+    "runtime-script": "apply-only-after-runtime-verify",
+    "local-machine": "do-not-cross-machine-apply-use-examples",
+    "artifacts": "never-upload-never-apply"
+  },
+  "fileCount": 127,
+  "files": [
+    {
+      "path": "Codex-webui-react/AGENTS.md",
+      "sha": "36e6ebfeeaa0cada06842de7e56d4177deb8ed1f",
+      "size": 1293,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/index.html",
+      "sha": "bffea51badd13818d6c257579c330eb9a0e1d8a1",
+      "size": 388,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/package.json",
+      "sha": "61f8169279505b8ee35c2d12c7162fde033e74f5",
+      "size": 1253,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/RULES.md",
+      "sha": "88b2624b7a12bbbb04266c4fc117b65993d3d071",
+      "size": 2932,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/public-tunnel.ts",
+      "sha": "87aafe729ff24a9b140bb6e3459e8d905c38c0f5",
+      "size": 17054,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/server.ts",
+      "sha": "e1be79a9535f28128736ba39d33ede1fff93fa26",
+      "size": 102999,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/services/app-server-client.ts",
+      "sha": "4a8640619dc56dc9e784e3ad51ba4b51c206f134",
+      "size": 15309,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/services/codex-launch.ts",
+      "sha": "d43f3a149fb326dccbbe0af4b3ca10df38a15c07",
+      "size": 1597,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/services/codex-updater.ts",
+      "sha": "a6d1736f6f2234b8b3049563ee6f1922875bc08b",
+      "size": 7380,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/services/codex.ts",
+      "sha": "f455252fb886917f4b3f5ec76f2d4c4b2aa415ad",
+      "size": 56639,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/services/favorites.ts",
+      "sha": "508e4de734da77a30f37784ecf8c6e43dfd924ea",
+      "size": 4631,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/services/git.ts",
+      "sha": "99903ff4e402b1cea52b7e1b694f4a5570cbddb1",
+      "size": 18195,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/services/mcp.ts",
+      "sha": "6293bb5980dbddeeca6bbe9c5001235009120cbc",
+      "size": 18510,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/services/memory.ts",
+      "sha": "0440d24070c1e088fb94d2246ce0164938fdd4b6",
+      "size": 2106,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/services/preview.ts",
+      "sha": "e1bb18cf54a440b12597c7298824fb64a9a133ed",
+      "size": 4470,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/services/skills.ts",
+      "sha": "3cc37556da363a60c3f8f90098a17b5b64865748",
+      "size": 6869,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/services/storage-to.ts",
+      "sha": "682e626fc25bffc25446d8abae7e362f7720e307",
+      "size": 5286,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/services/terminal.ts",
+      "sha": "136716c439c9036123f4c4c672b4a3241d5be3ea",
+      "size": 5821,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/services/transfer-store.ts",
+      "sha": "41251f13494d3c5bd174e8f739fdd0ecf5d1fd8b",
+      "size": 17780,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/types.ts",
+      "sha": "a33fcfcf60b1092c8f5229b0ca1ae12c65d157f8",
+      "size": 1295,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/utils/config.ts",
+      "sha": "a4ff525d6ce2806566920522c066fcdb9159c449",
+      "size": 3139,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/utils/fs-helpers.ts",
+      "sha": "dcec66284e7e7f16e4e52fade19078495537502d",
+      "size": 20839,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/server/utils/rate-limit.ts",
+      "sha": "e7f630694aa65d3b6335e30e7ca8f4f58b0272b1",
+      "size": 998,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/src/client/App.tsx",
+      "sha": "f427b561fb265106aa5d9db3ad9864c7eba0942e",
+      "size": 1070,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/src/client/components/ui/badge.tsx",
+      "sha": "9d584814869fab4721ec73b198b43f936a2081af",
+      "size": 394,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/src/client/components/ui/button.tsx",
+      "sha": "1aa225b5b3a58958716bf6e17558aaa9ef55173f",
+      "size": 1449,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/src/client/components/ui/dialog.tsx",
+      "sha": "f98db80451138347a1898159200e6f5235b40d31",
+      "size": 1336,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/src/client/components/ui/input.tsx",
+      "sha": "edc7eecc59154712b557106e6bcde66f9d310614",
+      "size": 609,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/src/client/components/ui/textarea.tsx",
+      "sha": "59bc1afca1bf37359c820327fbe6cc356467e4c4",
+      "size": 629,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/src/client/legacy-shell.ts",
+      "sha": "7ccbcb89eac0872d655b77e97475c051491c4f13",
+      "size": 30911,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/src/client/lib/api.ts",
+      "sha": "458c661d9dea02534e3963c5111db8ab228dc6e9",
+      "size": 1149,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/src/client/lib/markdown.tsx",
+      "sha": "67887b4d09343e2dbb912f0027026e827e2e6a05",
+      "size": 1929,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/src/client/lib/utils.ts",
+      "sha": "1c111e328032223531e1bba1ed03a0379b85d402",
+      "size": 1232,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/src/client/main.tsx",
+      "sha": "8edf71bd5507d761b5925987737f8f8682cd2cd6",
+      "size": 220,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/src/client/store/webui-store.ts",
+      "sha": "117041ad7616530dd297ec92f061ba01c809586f",
+      "size": 13047,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/src/client/styles.css",
+      "sha": "da08bb61b22633bee300dca985ba17e2548de7ad",
+      "size": 2829,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/src/client/types/webui.ts",
+      "sha": "2516169524f21290ccff5df1752593995a2e8e06",
+      "size": 2181,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/static/css/app.css",
+      "sha": "a25a71894344590305fd19f63655d8c130ff5478",
+      "size": 111809,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/static/js/app.js",
+      "sha": "4ad151ee4c3868c635b093eb0463f5c3afef59f6",
+      "size": 290179,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/static/js/transfer.js",
+      "sha": "917cc6a120e0048105adf342e8b7c797c3cf29ca",
+      "size": 32044,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/tsconfig.json",
+      "sha": "4c66d1f7b750089f76a9a1f545ae1de43908c245",
+      "size": 635,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/tsconfig.server.json",
+      "sha": "93650519471b60f09530a95c1789a15fb2f79b30",
+      "size": 322,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-react/vite.config.ts",
+      "sha": "3616bd2b8347bf9d286d318b672a27f6d22801ac",
+      "size": 924,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/AGENTS.md",
+      "sha": "fc7eadf825f90c388bd75bc0b709576a05560069",
+      "size": 5464,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/DIAGNOSE_CONSOLE_FLASHES.vbs",
+      "sha": "ae006ff81a3070483e35f335e3c703ece8d30088",
+      "size": 2646,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/INSTALL_HIDDEN_STARTUP_ENTRY.vbs",
+      "sha": "34286ddd10e37b257c20d9f4edc8eb62bcbead25",
+      "size": 1181,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/package.json",
+      "sha": "2621b747254b43992c10047a18c46e9083e0fc70",
+      "size": 1218,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/public/css/app.css",
+      "sha": "a25a71894344590305fd19f63655d8c130ff5478",
+      "size": 111809,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/public/css/p2p-phone.css",
+      "sha": "9b23d4f5fc958cb35b6ad3dd10a1e441797444ed",
+      "size": 24782,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/public/icons/codex-webui.ico",
+      "sha": "8bc56da1aec12340e905ed8bc09d43fa30454c0b",
+      "size": 16958,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/public/icons/codex-webui.svg",
+      "sha": "ee54576515f0c6f560528be3310cfc3378643371",
+      "size": 858,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/public/index.html",
+      "sha": "480df2af0f1c9a93129658041292475962edd4cb",
+      "size": 34184,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/public/js/app.js",
+      "sha": "a99a46ab56de2edc9ac8aebac6efcca628d9e72d",
+      "size": 291631,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/public/js/p2p-phone.js",
+      "sha": "eae7782cf780a330d7e2d23e9008b4d496a02970",
+      "size": 52049,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/public/js/p2p-transfer.js",
+      "sha": "62b685d532d46fe4dd84961a8ad26838b9704d9e",
+      "size": 25758,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/public/js/transfer.js",
+      "sha": "917cc6a120e0048105adf342e8b7c797c3cf29ca",
+      "size": 32044,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/public/manifest.webmanifest",
+      "sha": "3a37d11c376809f3dd9f3d3e95f8ae44f3ee0577",
+      "size": 472,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/public/p2p-phone.html",
+      "sha": "1339ea04de8698f2c297517248814331d85556ed",
+      "size": 5547,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/RESTART_WEBUI_HIDDEN.vbs",
+      "sha": "d7043d4b2ce608c2c0a7cea3b02e748e46f9b040",
+      "size": 1663,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/RULES.md",
+      "sha": "cc187da2738e8e84cab0353d8a0ccc8dcb23b4d6",
+      "size": 7339,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/RUN_WATCHDOG_FOREVER.cmd",
+      "sha": "1aa10a88246b6126549f0a4a0cf0c112134b3808",
+      "size": 359,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/p2p-helper.ts",
+      "sha": "6f6cc5c4369b0e51c345dbef8cdb0a46b3b6e5f2",
+      "size": 15806,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/public-tunnel.ts",
+      "sha": "b8b9a87326408b4d958650f79dc5d48a888d161e",
+      "size": 17054,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/server.ts",
+      "sha": "3d2801f5a4c3fe42fe42c04b06057bb2d3b46a57",
+      "size": 106644,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/services/app-server-client.ts",
+      "sha": "4a1919fabbf8f02f912dea89868d5669548e9de9",
+      "size": 15309,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/services/codex-launch.ts",
+      "sha": "decf44dde957df9db0e0d1e8d293748e03456856",
+      "size": 1808,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/services/codex-updater.ts",
+      "sha": "a6d1736f6f2234b8b3049563ee6f1922875bc08b",
+      "size": 7380,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/services/codex.ts",
+      "sha": "980d0f5e05b821449c982c7591aa2d02b28ebb26",
+      "size": 60499,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/services/favorites.ts",
+      "sha": "508e4de734da77a30f37784ecf8c6e43dfd924ea",
+      "size": 4631,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/services/git.ts",
+      "sha": "99903ff4e402b1cea52b7e1b694f4a5570cbddb1",
+      "size": 18195,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/services/mcp.ts",
+      "sha": "6293bb5980dbddeeca6bbe9c5001235009120cbc",
+      "size": 18510,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/services/memory.ts",
+      "sha": "0440d24070c1e088fb94d2246ce0164938fdd4b6",
+      "size": 2106,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/services/preview.ts",
+      "sha": "e1bb18cf54a440b12597c7298824fb64a9a133ed",
+      "size": 4470,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/services/skills.ts",
+      "sha": "3cc37556da363a60c3f8f90098a17b5b64865748",
+      "size": 6869,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/services/storage-to.ts",
+      "sha": "682e626fc25bffc25446d8abae7e362f7720e307",
+      "size": 5286,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/services/terminal.ts",
+      "sha": "136716c439c9036123f4c4c672b4a3241d5be3ea",
+      "size": 5821,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/services/transfer-store.ts",
+      "sha": "41251f13494d3c5bd174e8f739fdd0ecf5d1fd8b",
+      "size": 17780,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/types.ts",
+      "sha": "a33fcfcf60b1092c8f5229b0ca1ae12c65d157f8",
+      "size": 1295,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/utils/config.ts",
+      "sha": "a4ff525d6ce2806566920522c066fcdb9159c449",
+      "size": 3139,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/utils/fs-helpers.ts",
+      "sha": "dcec66284e7e7f16e4e52fade19078495537502d",
+      "size": 20839,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/src/utils/rate-limit.ts",
+      "sha": "e7f630694aa65d3b6335e30e7ca8f4f58b0272b1",
+      "size": 998,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/START_WATCHDOG_HIDDEN.vbs",
+      "sha": "e2bdb37333fa7850eaf4bbc84f528e6ed641f831",
+      "size": 336,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/START_WATCHDOG.cmd",
+      "sha": "e65ba51b92bffdee9ffb1d6cd0a76075fd45a98f",
+      "size": 69,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/tsconfig.json",
+      "sha": "07b483cb319dfbc1b3d2bd69cb1e8f827dfd186d",
+      "size": 316,
+      "category": "webui-source"
+    },
+    {
+      "path": "Codex-webui-ts/watchdog.cjs",
+      "sha": "e05b166bbd5f4bc3b800b5f9d705d28facdde87e",
+      "size": 4943,
+      "category": "webui-source"
+    },
+    {
+      "path": "codex/AGENTS.md",
+      "sha": "5216f0688f3b0f160d5e6e41effbaadc10a5b8d5",
+      "size": 10380,
+      "category": "rules"
+    },
+    {
+      "path": "codex/agents/lop-explorer.toml",
+      "sha": "1aac0104d10cfe1b90f74856baeda185b9c2efca",
+      "size": 983,
+      "category": "rules"
+    },
+    {
+      "path": "codex/agents/lop-reviewer.toml",
+      "sha": "347f77b6775df02523f0215ad3cd8dc57d36f2f5",
+      "size": 924,
+      "category": "rules"
+    },
+    {
+      "path": "codex/agents/lop-verifier.toml",
+      "sha": "b9e082af9464e946e2b96da4134042f43aa13cfc",
+      "size": 1010,
+      "category": "rules"
+    },
+    {
+      "path": "codex/config/developer_instructions.mirror.toml",
+      "sha": "7545cb8203a06971ad325f50f66d3dffa5a98b15",
+      "size": 1567,
+      "category": "config-example"
+    },
+    {
+      "path": "codex/prompts/strong-execution-loop.md",
+      "sha": "59d6b03738c28cc26dd2d1352c7fb8612e8bc9ce",
+      "size": 1171,
+      "category": "rules"
+    },
+    {
+      "path": "codex/rules/artifact-apk-windows.md",
+      "sha": "343ade53b09976d110bcd5dd04bbcd4ede80d0a6",
+      "size": 7719,
+      "category": "rules"
+    },
+    {
+      "path": "codex/rules/webui-plus-parity.md",
+      "sha": "ce38acfbea70b5c448f026ce8d0c9fc1f70d86c9",
+      "size": 7787,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-design-polish/agents/openai.yaml",
+      "sha": "0d1b644c47b637fd7eff707059299c439a3ee0c9",
+      "size": 253,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-design-polish/assets/lop-workbench-theme.css",
+      "sha": "dfbb8f1275d2cb0a7cf60d9ab756d7294d39aa1a",
+      "size": 3855,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-design-polish/assets/report-template.md",
+      "sha": "6667937d173fc477ce8035e3de14c11ccb46974e",
+      "size": 547,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-design-polish/references/docs-reports-playbook.md",
+      "sha": "f52223a06326b02e8656bb27bcd99a16bec6f453",
+      "size": 3192,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-design-polish/references/quality-rubric.md",
+      "sha": "4b811457d949495026fe1ba3d66198dc21edde57",
+      "size": 4179,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-design-polish/references/source-selection.md",
+      "sha": "855f2c524ed4d716c094a77cf7aa86ff356ba357",
+      "size": 8541,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-design-polish/references/ui-polish-playbook.md",
+      "sha": "1c1d68fc062093c84c83dc365ed7b9496c28ce71",
+      "size": 8533,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-design-polish/scripts/audit_skill_bundle.py",
+      "sha": "634f3993a6ec1d8d802c56d7a6631a650bca17d7",
+      "size": 5111,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-design-polish/scripts/contrast_check.py",
+      "sha": "af4798322e032f18ca95235d8f4672b1a113e80f",
+      "size": 2423,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-design-polish/SKILL.md",
+      "sha": "e54bec9398b44522fe0cfffef5fb566a27f32aa9",
+      "size": 8973,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-long-task/agents/openai.yaml",
+      "sha": "79f57f73741df3a9ff89f52176314812e3673869",
+      "size": 206,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-long-task/references/local-context-lookup.md",
+      "sha": "b5aff687070450cf06b4bb93efb9bc631b740883",
+      "size": 1003,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-long-task/references/lop-long-task-protocol-v1.md",
+      "sha": "acfaa7383444316179ef487571981f54c736ebc4",
+      "size": 15824,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-long-task/SKILL.md",
+      "sha": "f57230231ba06e70672b716ebb81e73b7abade1b",
+      "size": 2552,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-requirement-preflight/agents/openai.yaml",
+      "sha": "78ea122e66c57a93107ce751eb453d428f80eeec",
+      "size": 234,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-requirement-preflight/SKILL.md",
+      "sha": "52514e4f726971a28534bec8470b69ef21b7e3eb",
+      "size": 4057,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-systematic-debugging/agents/openai.yaml",
+      "sha": "6fa2773cb6c6d0c2effca577e015e261a422dbf4",
+      "size": 224,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-systematic-debugging/SKILL.md",
+      "sha": "fc03eb6bbb3d6865f3f10c4889703f4584e8225f",
+      "size": 2682,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-tdd-minimal-change/agents/openai.yaml",
+      "sha": "cbaa2237b7337cc8588727f22eb1a6f87981d173",
+      "size": 224,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-tdd-minimal-change/SKILL.md",
+      "sha": "c141d17d2f9e118ba22bdbde710e861a2d7b5ae3",
+      "size": 2201,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-verification-gate/agents/openai.yaml",
+      "sha": "1333afdfa262447fbc38cd530e0abe95f5f8acc8",
+      "size": 193,
+      "category": "rules"
+    },
+    {
+      "path": "codex/skills/lop-verification-gate/SKILL.md",
+      "sha": "92100a8245f85c2830f1ea8509f82f2984595b2b",
+      "size": 3248,
+      "category": "rules"
+    },
+    {
+      "path": "codex/workspace/Documents-Codex/AGENTS.md",
+      "sha": "fdee154d1276c3fe769161f3f3fd0a492a3979eb",
+      "size": 2075,
+      "category": "rules"
+    },
+    {
+      "path": "codex/workspace/Documents-Codex/RULES.md",
+      "sha": "7d0647390e1d059ed930be2d0b4fa7446e2b57aa",
+      "size": 31003,
+      "category": "rules"
+    },
+    {
+      "path": "github-pull.config.json",
+      "sha": "1b2846de233a502a5a0afb1fbce65f9dd3549711",
+      "size": 912,
+      "category": "config-example"
+    },
+    {
+      "path": "github-sync.config.example.json",
+      "sha": "c968fffa11d06f0a63c7d55caa318e5051b31c13",
+      "size": 5834,
+      "category": "config-example"
+    },
+    {
+      "path": "package.json",
+      "sha": "f28f217af75a4f0311fb8341ae90047ecf1fce54",
+      "size": 1030,
+      "category": "source"
+    },
+    {
+      "path": "parity/bidirectional-manifest.json",
+      "sha": "d6ea796d250dcde2a8b12bca70b61e6a222b9774",
+      "size": 6911,
+      "category": "source"
+    },
+    {
+      "path": "RULES.md",
+      "sha": "5bb6370cf38e42d700293cab73d43388fad8e5e2",
+      "size": 5832,
+      "category": "rules"
+    },
+    {
+      "path": "scripts/github-pull.mjs",
+      "sha": "6e5cc637f1f61498bd5da7692b3affabc1b398b1",
+      "size": 25604,
+      "category": "runtime-script"
+    },
+    {
+      "path": "scripts/github-sync.mjs",
+      "sha": "95ca2605bff3aaa6de743ff98638203cdffebd4d",
+      "size": 42189,
+      "category": "runtime-script"
+    },
+    {
+      "path": "scripts/parity-check.mjs",
+      "sha": "101383003a4ec7c3cf8b25f2e36eb8d342c70305",
+      "size": 14905,
+      "category": "runtime-script"
+    },
+    {
+      "path": "scripts/parity-watch.mjs",
+      "sha": "e60c497cda9445c12739028ae86964a9d3f415d0",
+      "size": 2469,
+      "category": "runtime-script"
+    },
+    {
+      "path": "scripts/webui-recover.mjs",
+      "sha": "1a4ed90f4a099f7b4f77e8c0feeddba75e26ef43",
+      "size": 14179,
+      "category": "runtime-script"
+    }
+  ]
+}

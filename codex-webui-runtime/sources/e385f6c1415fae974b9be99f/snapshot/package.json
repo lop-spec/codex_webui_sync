@@ -1,0 +1,22 @@
+{
+  "name": "github-ui-parity-sync",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "github:sync:status": "node scripts/github-sync.mjs --status",
+    "github:sync:dry-run": "node scripts/github-sync.mjs --once --dry-run",
+    "github:sync:once": "node scripts/github-sync.mjs --once",
+    "github:sync:watch": "node scripts/github-sync.mjs --watch",
+    "github:pull:status": "node scripts/github-pull.mjs --status",
+    "github:pull:dry-run": "node scripts/github-pull.mjs --once --dry-run",
+    "github:pull:once": "node scripts/github-pull.mjs --once",
+    "github:pull:watch": "node scripts/github-pull.mjs --watch",
+    "parity:check": "node scripts/parity-check.mjs",
+    "parity:check:full": "node scripts/parity-check.mjs --full",
+    "parity:watch": "node scripts/parity-watch.mjs",
+    "parity:watch:full": "node scripts/parity-watch.mjs --full",
+    "benchmark:webui-shells": "node Codex-webui-ts/scripts/benchmark-browser-shells.mjs",
+    "test": "node --test tests/*.test.mjs"
+  }
+}

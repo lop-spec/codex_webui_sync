@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lop Verification Gate"
+  short_description: "Final proof gate before delivery"
+  default_prompt: "Use $lop-verification-gate before marking this task complete."

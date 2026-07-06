@@ -1,0 +1,281 @@
+{
+  "version": 1,
+  "projects": {
+    "webui": "Codex-webui-ts",
+    "react": "Codex-webui-react"
+  },
+  "excludedPaths": [
+    "Codex-webui-ts/tests",
+    "Codex-webui-react/tests"
+  ],
+  "excludedByLop": [
+    "git",
+    "Git",
+    "gitModal",
+    "openGitBtn",
+    "showDiff",
+    "workspace-diffs",
+    "terminal",
+    "Terminal",
+    "terminalModal",
+    "openTerminalBtn",
+    "terminalSpawn",
+    "terminalStdin",
+    "terminalKill",
+    "terminalRefresh",
+    "终端",
+    "Git 变更"
+  ],
+  "aliases": [
+    {
+      "from": "5055",
+      "to": "WEBUI_PORT"
+    },
+    {
+      "from": "5155",
+      "to": "WEBUI_PORT"
+    },
+    {
+      "from": "5056",
+      "to": "APP_SERVER_PORT"
+    },
+    {
+      "from": "5156",
+      "to": "APP_SERVER_PORT"
+    },
+    {
+      "from": "Codex-webui-ts",
+      "to": "CODEX_WEBUI_PROJECT"
+    },
+    {
+      "from": "Codex-webui-react",
+      "to": "CODEX_WEBUI_PROJECT"
+    }
+  ],
+  "filePairs": [
+    {
+      "id": "backend:server",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/server.ts",
+      "target": "Codex-webui-react/server/server.ts"
+    },
+    {
+      "id": "backend:public-tunnel",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/public-tunnel.ts",
+      "target": "Codex-webui-react/server/public-tunnel.ts"
+    },
+    {
+      "id": "backend:types",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/types.ts",
+      "target": "Codex-webui-react/server/types.ts"
+    },
+    {
+      "id": "backend:app-server-client",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/services/app-server-client.ts",
+      "target": "Codex-webui-react/server/services/app-server-client.ts"
+    },
+    {
+      "id": "backend:codex",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/services/codex.ts",
+      "target": "Codex-webui-react/server/services/codex.ts"
+    },
+    {
+      "id": "backend:codex-launch",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/services/codex-launch.ts",
+      "target": "Codex-webui-react/server/services/codex-launch.ts"
+    },
+    {
+      "id": "backend:git",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/services/git.ts",
+      "target": "Codex-webui-react/server/services/git.ts"
+    },
+    {
+      "id": "backend:mcp",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/services/mcp.ts",
+      "target": "Codex-webui-react/server/services/mcp.ts"
+    },
+    {
+      "id": "backend:memory",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/services/memory.ts",
+      "target": "Codex-webui-react/server/services/memory.ts"
+    },
+    {
+      "id": "backend:preview",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/services/preview.ts",
+      "target": "Codex-webui-react/server/services/preview.ts"
+    },
+    {
+      "id": "backend:skills",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/services/skills.ts",
+      "target": "Codex-webui-react/server/services/skills.ts"
+    },
+    {
+      "id": "backend:storage-to",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/services/storage-to.ts",
+      "target": "Codex-webui-react/server/services/storage-to.ts"
+    },
+    {
+      "id": "backend:terminal",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/services/terminal.ts",
+      "target": "Codex-webui-react/server/services/terminal.ts"
+    },
+    {
+      "id": "backend:transfer-store",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/services/transfer-store.ts",
+      "target": "Codex-webui-react/server/services/transfer-store.ts"
+    },
+    {
+      "id": "backend:config-utils",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/utils/config.ts",
+      "target": "Codex-webui-react/server/utils/config.ts"
+    },
+    {
+      "id": "backend:fs-helpers",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/utils/fs-helpers.ts",
+      "target": "Codex-webui-react/server/utils/fs-helpers.ts"
+    },
+    {
+      "id": "backend:rate-limit",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/src/utils/rate-limit.ts",
+      "target": "Codex-webui-react/server/utils/rate-limit.ts"
+    },
+    {
+      "id": "frontend:app-js",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/public/js/app.js",
+      "target": "Codex-webui-react/static/js/app.js",
+      "allowExclusions": true
+    },
+    {
+      "id": "frontend:transfer-js",
+      "kind": "jsts",
+      "source": "Codex-webui-ts/public/js/transfer.js",
+      "target": "Codex-webui-react/static/js/transfer.js"
+    },
+    {
+      "id": "frontend:app-css",
+      "kind": "css",
+      "source": "Codex-webui-ts/public/css/app.css",
+      "target": "Codex-webui-react/static/css/app.css"
+    }
+  ],
+  "uiShell": {
+    "id": "frontend:legacy-shell",
+    "source": "Codex-webui-ts/public/index.html",
+    "target": "Codex-webui-react/src/client/legacy-shell.ts",
+    "allowExclusions": true
+  },
+  "invariants": [
+    {
+      "id": "react:host-loads-source-assets",
+      "file": "Codex-webui-react/src/client/App.tsx",
+      "mustContain": [
+        "legacyShellHtml",
+        "dangerouslySetInnerHTML",
+        "/css/app.css",
+        "/js/app.js",
+        "/js/transfer.js"
+      ]
+    },
+    {
+      "id": "react:index-loads-source-css",
+      "file": "Codex-webui-react/index.html",
+      "mustContain": [
+        "/css/app.css?v=react-parity-20260705"
+      ]
+    },
+    {
+      "id": "react:no-replacement-client-theme",
+      "file": "Codex-webui-react/src/client/main.tsx",
+      "mustNotContain": [
+        "@/styles.css"
+      ]
+    },
+    {
+      "id": "ledger:bidirectional-sync-row",
+      "file": "Codex-webui-react/docs/source-to-target-ledger.md",
+      "mustContain": [
+        "Bidirectional parity sync guard",
+        "scripts/parity-check.mjs",
+        "parity/bidirectional-manifest.json"
+      ]
+    }
+  ],
+  "ledger": {
+    "id": "react:source-ledger-clean",
+    "file": "Codex-webui-react/docs/source-to-target-ledger.md",
+    "blockedTerms": [
+      "missing",
+      "partial",
+      "in_progress",
+      "unmapped",
+      "unknown",
+      "placeholder",
+      "fake",
+      "固定提示词",
+      "未迁移",
+      "not implemented"
+    ]
+  },
+  "fullCommands": [
+    {
+      "id": "webui:build",
+      "cwd": "Codex-webui-ts",
+      "command": "npm",
+      "args": [
+        "run",
+        "build"
+      ]
+    },
+    {
+      "id": "webui:check",
+      "cwd": "Codex-webui-ts",
+      "command": "npm",
+      "args": [
+        "run",
+        "check"
+      ]
+    },
+    {
+      "id": "webui:test",
+      "cwd": "Codex-webui-ts",
+      "command": "npm",
+      "args": [
+        "test"
+      ]
+    },
+    {
+      "id": "react:check",
+      "cwd": "Codex-webui-react",
+      "command": "npm",
+      "args": [
+        "run",
+        "check"
+      ]
+    },
+    {
+      "id": "react:test",
+      "cwd": "Codex-webui-react",
+      "command": "npm",
+      "args": [
+        "test"
+      ]
+    }
+  ]
+}
