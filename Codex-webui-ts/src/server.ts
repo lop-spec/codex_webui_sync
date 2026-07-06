@@ -825,6 +825,12 @@ function windowsPowerShellCommand(): string {
   return fs.existsSync(powershell) ? powershell : 'powershell.exe';
 }
 
+function windowsExplorerCommand(): string {
+  const systemRoot = process.env.SystemRoot || 'C:\\Windows';
+  const explorer = path.join(systemRoot, 'explorer.exe');
+  return fs.existsSync(explorer) ? explorer : 'explorer.exe';
+}
+
 function pickProjectDirectory(): Promise<string | null> {
   const override = resolveProjectPath(process.env.CODEX_WEBUI_PICK_DIRECTORY);
   if (override) return Promise.resolve(override);
@@ -860,22 +866,14 @@ function pickProjectDirectory(): Promise<string | null> {
   });
 }
 
-const WINDOWS_BACKGROUND_OPEN_SCRIPT = [
-  '$ErrorActionPreference = "Stop"',
-  '$target = [Environment]::GetEnvironmentVariable("CODEX_WEBUI_OPEN_TARGET")',
-  'if ([string]::IsNullOrWhiteSpace($target)) { exit 1 }',
-  '$shell = New-Object -ComObject Shell.Application',
-  '$shell.ShellExecute($target, "", "", "open", 4) # SW_SHOWNOACTIVATE'
-].join('\n');
-
 function openLocalPath(targetPath: string, kind: OpenTarget['kind'] = 'directory'): Promise<void> {
   const override = process.env.CODEX_WEBUI_OPEN_COMMAND;
   const windowsOpen = !override && process.platform === 'win32';
-  const command = override || (windowsOpen ? windowsPowerShellCommand() : process.platform === 'darwin' ? 'open' : 'xdg-open');
+  const command = override || (windowsOpen ? windowsExplorerCommand() : process.platform === 'darwin' ? 'open' : 'xdg-open');
   const args = override
     ? [...readJsonArrayEnv('CODEX_WEBUI_OPEN_ARGS_PREFIX_JSON'), targetPath]
     : windowsOpen
-      ? ['-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-Command', WINDOWS_BACKGROUND_OPEN_SCRIPT]
+      ? (kind === 'file' ? ['/select,', targetPath] : [targetPath])
       : [...readJsonArrayEnv('CODEX_WEBUI_OPEN_ARGS_PREFIX_JSON'), targetPath];
   return new Promise((resolveOpen, reject) => {
     const child = spawn(command, args, {
