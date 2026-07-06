@@ -1263,6 +1263,7 @@ const CLIENT_BUILD = '20260706-project-window';
       }
       async function loadAccountPanel() {
         setAccountStatus('正在读取账号状态...');
+        if (accountRefreshBtn) accountRefreshBtn.disabled = true;
         try {
           const result = endpointResult(await fetchJsonEndpoint('/account/status'));
           renderAccountPanel(result);
@@ -1271,6 +1272,10 @@ const CLIENT_BUILD = '20260706-project-window';
           if (accountIdentity) accountIdentity.textContent = '账号状态读取失败。';
           if (accountLimitCards) accountLimitCards.innerHTML = '';
           if (accountUsageSummary) accountUsageSummary.innerHTML = '';
+          if (accountLimitsSection) accountLimitsSection.hidden = true;
+          if (accountUsageSection) accountUsageSection.hidden = true;
+        } finally {
+          if (accountRefreshBtn) accountRefreshBtn.disabled = false;
         }
       }
       async function openAccountPanel() {
@@ -1279,11 +1284,16 @@ const CLIENT_BUILD = '20260706-project-window';
       }
       async function startAccountLogin() {
         setAccountStatus('正在启动登录...');
-        const result = endpointResult(await postJsonEndpoint('/account/login/start', { type: 'chatgpt' }));
-        const url = result?.authUrl || result?.verificationUri || result?.verification_uri || '';
-        if (url) window.open(url, '_blank', 'noopener,noreferrer');
-        setAccountStatus(url ? '已打开登录页面，完成后请刷新账号状态。' : '已启动登录流程，请按返回信息完成登录。');
-        if (accountRawDetails) accountRawDetails.textContent = JSON.stringify(redactAccountDetails(result || {}), null, 2);
+        if (accountLoginBtn) accountLoginBtn.disabled = true;
+        try {
+          const result = endpointResult(await postJsonEndpoint('/account/login/start', { type: 'chatgpt' }));
+          const url = result?.authUrl || result?.verificationUri || result?.verification_uri || '';
+          if (url) window.open(url, '_blank', 'noopener,noreferrer');
+          setAccountStatus(url ? '已打开登录页面，完成后请刷新账号状态。' : '已启动登录流程，请按返回信息完成登录。');
+          if (accountRawDetails) accountRawDetails.textContent = JSON.stringify(redactAccountDetails(result || {}), null, 2);
+        } finally {
+          if (accountLoginBtn) accountLoginBtn.disabled = false;
+        }
       }
       function markdownTable(headers, rows) {
         const header = `| ${headers.join(' | ')} |`;
