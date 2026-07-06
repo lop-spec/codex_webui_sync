@@ -1,8 +1,7 @@
-const CLIENT_BUILD = '20260706-project-window';
+const CLIENT_BUILD = '20260706-manual-projects';
       document.documentElement.dataset.webuiBuild = CLIENT_BUILD;
       const DEBUG_NO_EVENTS = new URLSearchParams(location.search).has('debug_no_events');
       const SIDEBAR_VISIBLE_LIMIT = 10;
-      const PROJECT_THREAD_RECENT_WINDOW_MS = 30 * 60 * 1000;
       const COMPOSER_DRAFT_KEY = 'plusComposerDraft';
 
       const $ = (id) => document.getElementById(id);
@@ -98,7 +97,6 @@ const CLIENT_BUILD = '20260706-project-window';
       const composerMoreMenu = $('composerMoreMenu');
       const composerAddAttachment = $('composerAddAttachment');
       const composerAddFolder = $('composerAddFolder');
-      const composerDropSurface = document.querySelector('[data-plus-composer]');
       const composerPlanMenuBtn = $('composerPlanMenuBtn');
       const composerPlanValue = $('composerPlanValue');
       const composerSpeedValue = $('composerSpeedValue');
@@ -432,7 +430,6 @@ const CLIENT_BUILD = '20260706-project-window';
       let pinnedPaths = readPinnedPaths();
       let eventStreamStarted = false;
       let composerAttachments = [];
-      let composerDragDepth = 0;
       let queuedFollowUps = [];
       let guidanceState = { pending: 0, saved: 0, count: 0, items: [] };
       let queuePanelCollapsed = false;
@@ -505,7 +502,6 @@ const CLIENT_BUILD = '20260706-project-window';
         { id:'review', description:'对当前改动发起 Review。', flavor:'official', action:'startReview', meta:'Official', requiresThread:true, supportsInlineArgs:true },
         { id:'status', description:'查看当前会话配置与 token 使用情况。', flavor:'official', action:'showStatus', meta:'Local', availableDuringTask:true },
         { id:'debug-config', description:'查看配置层与来源。', flavor:'official', action:'showDebugConfig', meta:'Local', availableDuringTask:true },
-        { id:'diff', description:'显示当前工作区 diff。', flavor:'official', action:'showDiff', meta:'Local', requiresWorkspace:true, availableDuringTask:true },
         { id:'goal', description:'设置或查看长任务目标。', flavor:'official', action:'threadGoal', meta:'Official', requiresThread:true, supportsInlineArgs:true, availableDuringTask:true },
         { id:'compact', description:'压缩当前线程上下文。', flavor:'official', action:'compactThread', meta:'Official', requiresThread:true, availableDuringTask:false },
         { id:'fork', description:'从当前线程创建分支线程。', flavor:'official', action:'forkThread', meta:'Official', requiresThread:true, availableDuringTask:false },
@@ -1334,8 +1330,7 @@ const CLIENT_BUILD = '20260706-project-window';
         renderGitPanel();
       }
       async function openGitPanel() {
-        openModal('gitModal');
-        await loadGitPanel(gitPanelState.scope);
+        setGitStatusLine('React parity shell hides the Git panel entry.', true);
       }
       async function runGitPathAction(endpoint, extra = {}) {
         const paths = gitSelectionPaths();
@@ -1426,14 +1421,7 @@ const CLIENT_BUILD = '20260706-project-window';
         renderTerminalPanel();
       }
       async function openTerminalPanel() {
-        openModal('terminalModal');
-        await loadTerminalSessions();
-        if (!terminalState.pollTimer) {
-          terminalState.pollTimer = setInterval(() => {
-            if (!$('terminalModal')?.classList.contains('open')) return;
-            loadTerminalSessions().catch(() => {});
-          }, 1500);
-        }
+        setTerminalStatus('React parity shell hides the terminal panel entry.', true);
       }
       async function spawnTerminal() {
         const command = String(terminalCommandInput?.value || '').trim();
@@ -1522,18 +1510,6 @@ const CLIENT_BUILD = '20260706-project-window';
         if (data?.kind === 'website' && data.url) {
           window.open(data.url, '_blank', 'noopener');
         }
-      }
-      async function showGitDiff() {
-        await openGitPanel();
-        const data = await fetchJsonEndpoint('/git/diff');
-        if (!data.isRepo) {
-          addSystem(`Git：当前工作区不是 Git 仓库。\n${data.workdir || currentWorkdir}\n${data.error || ''}`.trim(), true);
-          return;
-        }
-        const files = (data.files || []).slice(0, 40).map((file) => [file.status, file.path]);
-        const table = files.length ? markdownTable(['状态', '文件'], files) : '当前没有未提交文件。';
-        const diff = data.diff ? `\n\n\`\`\`diff\n${data.diff}\n\`\`\`` : '';
-        addBubble(`Git 状态\n\n分支：${data.branch || '(detached)'}\n仓库：${data.root}\n\n${table}${diff}`, 'agent');
       }
       function setSkillsActionError(message = '') {
         if (!skillsActionError) return;
@@ -2106,10 +2082,6 @@ const CLIENT_BUILD = '20260706-project-window';
         if (item.action === 'showDebugConfig') {
           await loadConfig();
           addBubble('```json\n' + JSON.stringify(currentConfig, null, 2) + '\n```', 'agent');
-          return;
-        }
-        if (item.action === 'showDiff') {
-          await showGitDiff();
           return;
         }
         if (item.action === 'initAgents') {
@@ -3380,6 +3352,8 @@ const CLIENT_BUILD = '20260706-project-window';
           const threads = project.threads || projectThreadsForWorkdir(project.workdir, project.entries);
           add(project.workdir, projectDisplayName(project.workdir), threads.length);
         });
+        projectRootsCache.forEach((root) => add(root.path, root.name || projectDisplayName(root.path), 0));
+        add(currentProjectRootPath || currentWorkdir, projectDisplayName(currentProjectRootPath || currentWorkdir), 0);
         const currentKey = normalizeSessionPath(session.projectRoot || session.cwd || '');
         return [...byKey.values()]
           .map((option) => ({ ...option, current: normalizeSessionPath(option.workdir) === currentKey }))
@@ -3984,14 +3958,14 @@ const CLIENT_BUILD = '20260706-project-window';
               <button type="button" class="workspace-root-button" aria-expanded="${expanded ? 'true' : 'false'}" title="${escapeAttr(p.workdir)}">
                 <span class="workspace-root-chevron" aria-hidden="true">${expanded ? '⌄' : '›'}</span>
                 <span class="workspace-folder-icon" aria-hidden="true">${FOLDER_BUTTON_SVG}</span>
-                <span class="thread-label workspace-root-name">${escapeHtml(name)}</span>
+                <span class="thread-label">${escapeHtml(name)}</span>
                 <span class="workspace-root-meta">${threads.length ? `${threads.length} 条` : '空'}</span>
               </button>
               <div class="workspace-root-actions">
                 <button type="button" class="workspace-root-menu-btn" title="更多项目操作" aria-label="更多项目操作">⋯</button>
-                <button type="button" class="project-rename-btn workspace-root-secondary-action" title="重命名项目" aria-label="重命名项目">✎</button>
+                <button type="button" class="project-rename-btn" title="重命名项目" aria-label="重命名项目">✎</button>
                 <button type="button" class="project-new-thread-btn" title="在此项目中新建会话" aria-label="在此项目中新建会话">+</button>
-                <button type="button" class="project-open-btn workspace-root-secondary-action" title="设为项目主目录" aria-label="设为项目主目录">${FOLDER_BUTTON_SVG}</button>
+                <button type="button" class="project-open-btn" title="设为项目主目录" aria-label="设为项目主目录">${FOLDER_BUTTON_SVG}</button>
               </div>
             </div>`;
           root.querySelector('.workspace-root-row').addEventListener('contextmenu', (event) => openWorkspaceRootMenuFromEvent(event, p));
@@ -4726,16 +4700,6 @@ const CLIENT_BUILD = '20260706-project-window';
         updateComposerControls();
         text.focus();
       }
-      function dataTransferHasFiles(dataTransfer) {
-        return [...(dataTransfer?.types || [])].includes('Files');
-      }
-      function setComposerDropActive(active) {
-        if (!composerDropSurface) return;
-        composerDropSurface.classList.toggle('composer-drop-active', Boolean(active));
-      }
-      function composerAttachmentName(file) {
-        return String(file?.webkitRelativePath || file?.name || 'attachment').replace(/\\/g, '/');
-      }
       function renderAttachments() {
         const tray = $('attachmentTray');
         tray.innerHTML = '';
@@ -4781,34 +4745,20 @@ const CLIENT_BUILD = '20260706-project-window';
         }
         return true;
       }
-      async function addComposerFileAttachment(file) {
-        if (!file) return false;
-        if (await addImageAttachment(file)) return true;
-        const name = composerAttachmentName(file);
-        if (file.size > 220 * 1024) {
-          addSystem(`附件过大，已跳过：${name} (${toKB(file.size)})`, true);
-          return true;
-        }
-        try {
-          const body = await file.text();
-          appendToComposer(`<file name="${escapeAttr(name)}">\n${body}\n</file>`);
-        } catch (error) {
-          addSystem(`读取附件失败：${name}：${error.message || error}`, true);
-        }
-        return true;
-      }
       async function handlePickedFiles(files) {
-        const picked = [...(files || [])].filter(Boolean);
-        if (!picked.length) return;
-        const limit = 80;
-        let count = 0;
+        const picked = [...files];
         for (const file of picked) {
-          if (count >= limit) {
-            addSystem(`文件数量过多，已只处理前 ${limit} 个。`, true);
-            break;
+          if (await addImageAttachment(file)) continue;
+          if (file.size > 220 * 1024) {
+            addSystem(`附件过大，已跳过：${file.name} (${toKB(file.size)})`, true);
+            continue;
           }
-          count += 1;
-          await addComposerFileAttachment(file);
+          try {
+            const body = await file.text();
+            appendToComposer(`<file name="${file.name}">\n${body}\n</file>`);
+          } catch (error) {
+            addSystem(`读取附件失败：${file.name}：${error.message || error}`, true);
+          }
         }
       }
       let recognition = null;
@@ -5149,30 +5099,30 @@ const CLIENT_BUILD = '20260706-project-window';
           });
         }
       });
-      terminalSpawnBtn.addEventListener('click', () => spawnTerminal().catch((error) => setTerminalStatus(`终端创建失败：${error.message || error}`, true)));
-      terminalRefreshBtn.addEventListener('click', () => loadTerminalSessions().catch((error) => setTerminalStatus(`终端刷新失败：${error.message || error}`, true)));
-      terminalKillBtn.addEventListener('click', () => killActiveTerminal().catch((error) => setTerminalStatus(`终端结束失败：${error.message || error}`, true)));
-      terminalSendInputBtn.addEventListener('click', () => sendTerminalInput().catch((error) => setTerminalStatus(`stdin 发送失败：${error.message || error}`, true)));
-      terminalStdinInput.addEventListener('keydown', (event) => {
+      terminalSpawnBtn?.addEventListener('click', () => spawnTerminal().catch((error) => setTerminalStatus(`终端创建失败：${error.message || error}`, true)));
+      terminalRefreshBtn?.addEventListener('click', () => loadTerminalSessions().catch((error) => setTerminalStatus(`终端刷新失败：${error.message || error}`, true)));
+      terminalKillBtn?.addEventListener('click', () => killActiveTerminal().catch((error) => setTerminalStatus(`终端结束失败：${error.message || error}`, true)));
+      terminalSendInputBtn?.addEventListener('click', () => sendTerminalInput().catch((error) => setTerminalStatus(`stdin 发送失败：${error.message || error}`, true)));
+      terminalStdinInput?.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
           event.preventDefault();
           sendTerminalInput().catch((error) => setTerminalStatus(`stdin 发送失败：${error.message || error}`, true));
         }
       });
-      gitRefreshBtn.addEventListener('click', () => loadGitPanel(gitPanelState.scope).catch((error) => setGitStatusLine(`Git 刷新失败：${error.message || error}`, true)));
-      gitOpenRepoBtn.addEventListener('click', () => {
+      gitRefreshBtn?.addEventListener('click', () => loadGitPanel(gitPanelState.scope).catch((error) => setGitStatusLine(`Git 刷新失败：${error.message || error}`, true)));
+      gitOpenRepoBtn?.addEventListener('click', () => {
         const repo = gitPanelState.status?.repoRoot || gitPanelState.status?.root || currentWorkdir;
         if (repo) openLocalPath(repo);
       });
-      gitScopeUnstaged.addEventListener('click', () => loadGitPanel('unstaged').catch((error) => setGitStatusLine(`Git 读取失败：${error.message || error}`, true)));
-      gitScopeStaged.addEventListener('click', () => loadGitPanel('staged').catch((error) => setGitStatusLine(`Git 读取失败：${error.message || error}`, true)));
-      gitStageSelected.addEventListener('click', () => runGitPathAction('/git/stage').catch((error) => setGitStatusLine(`暂存失败：${error.message || error}`, true)));
-      gitUnstageSelected.addEventListener('click', () => runGitPathAction('/git/unstage').catch((error) => setGitStatusLine(`取消暂存失败：${error.message || error}`, true)));
-      gitDiscardSelected.addEventListener('click', () => discardSelectedGitChanges().catch((error) => setGitStatusLine(`丢弃失败：${error.message || error}`, true)));
-      gitCommitBtn.addEventListener('click', () => commitGitChanges().catch((error) => setGitStatusLine(`提交失败：${error.message || error}`, true)));
-      gitPullBtn.addEventListener('click', () => pullGitChanges().catch((error) => setGitStatusLine(`拉取失败：${error.message || error}`, true)));
-      gitPushBtn.addEventListener('click', () => pushGitChanges().catch((error) => setGitStatusLine(`推送失败：${error.message || error}`, true)));
-      gitBranchCreate.addEventListener('click', () => createGitBranch().catch((error) => setGitStatusLine(`创建分支失败：${error.message || error}`, true)));
+      gitScopeUnstaged?.addEventListener('click', () => loadGitPanel('unstaged').catch((error) => setGitStatusLine(`Git 读取失败：${error.message || error}`, true)));
+      gitScopeStaged?.addEventListener('click', () => loadGitPanel('staged').catch((error) => setGitStatusLine(`Git 读取失败：${error.message || error}`, true)));
+      gitStageSelected?.addEventListener('click', () => runGitPathAction('/git/stage').catch((error) => setGitStatusLine(`暂存失败：${error.message || error}`, true)));
+      gitUnstageSelected?.addEventListener('click', () => runGitPathAction('/git/unstage').catch((error) => setGitStatusLine(`取消暂存失败：${error.message || error}`, true)));
+      gitDiscardSelected?.addEventListener('click', () => discardSelectedGitChanges().catch((error) => setGitStatusLine(`丢弃失败：${error.message || error}`, true)));
+      gitCommitBtn?.addEventListener('click', () => commitGitChanges().catch((error) => setGitStatusLine(`提交失败：${error.message || error}`, true)));
+      gitPullBtn?.addEventListener('click', () => pullGitChanges().catch((error) => setGitStatusLine(`拉取失败：${error.message || error}`, true)));
+      gitPushBtn?.addEventListener('click', () => pushGitChanges().catch((error) => setGitStatusLine(`推送失败：${error.message || error}`, true)));
+      gitBranchCreate?.addEventListener('click', () => createGitBranch().catch((error) => setGitStatusLine(`创建分支失败：${error.message || error}`, true)));
       projectOpenConfirm.addEventListener('click', () => openProjectFolder(projectPathInput.value));
       projectPickFolder.addEventListener('click', pickProjectFolder);
       projectBrowseUp.addEventListener('click', () => {
@@ -5253,33 +5203,6 @@ const CLIENT_BUILD = '20260706-project-window';
         handlePickedFiles(event.currentTarget.files || []);
         event.currentTarget.value = '';
       });
-      if (composerDropSurface) {
-        composerDropSurface.addEventListener('dragenter', (event) => {
-          if (!dataTransferHasFiles(event.dataTransfer)) return;
-          event.preventDefault();
-          composerDragDepth += 1;
-          setComposerDropActive(true);
-        });
-        composerDropSurface.addEventListener('dragover', (event) => {
-          if (!dataTransferHasFiles(event.dataTransfer)) return;
-          event.preventDefault();
-          if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
-          setComposerDropActive(true);
-        });
-        composerDropSurface.addEventListener('dragleave', (event) => {
-          if (!dataTransferHasFiles(event.dataTransfer)) return;
-          event.preventDefault();
-          composerDragDepth = Math.max(0, composerDragDepth - 1);
-          if (composerDragDepth === 0) setComposerDropActive(false);
-        });
-        composerDropSurface.addEventListener('drop', (event) => {
-          if (!dataTransferHasFiles(event.dataTransfer)) return;
-          event.preventDefault();
-          composerDragDepth = 0;
-          setComposerDropActive(false);
-          handlePickedFiles(event.dataTransfer?.files || []);
-        });
-      }
       $('dictationBtn').addEventListener('click', toggleDictation);
       sideFilter.addEventListener('input', () => { renderSessions(); renderProjects(); });
       $('timeline').addEventListener('scroll', () => {

@@ -387,8 +387,8 @@
       .workspace-root-row {
         min-height: 36px;
         grid-template-columns: minmax(0, 1fr) auto;
-        gap: 5px;
-        padding: 0 6px 0 7px;
+        gap: 3px;
+        padding: 0 7px;
       }
       .workspace-root-row:hover,
       .workspace-root-row:focus-within {
@@ -397,9 +397,7 @@
       }
       .workspace-root-button {
         min-width: 0;
-        width: 100%;
-        display: grid;
-        grid-template-columns: 12px 16px minmax(0, 1fr) max-content;
+        display: flex;
         align-items: center;
         gap: 7px;
         padding: 0;
@@ -428,30 +426,21 @@
       }
       .thread-label {
         min-width: 0;
+        flex: 1 1 auto;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         font-weight: 560;
       }
-      .workspace-root-name {
-        display: block;
-        max-width: 100%;
-      }
       .workspace-root-meta {
-        justify-self: end;
-        max-width: 44px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        flex: 0 0 auto;
         color: var(--text-muted);
         font-size: 12px;
       }
       .workspace-root-actions {
-        min-width: 0;
         display: inline-flex;
         align-items: center;
         gap: 2px;
-        justify-self: end;
       }
       .project-new-thread-btn,
       .project-rename-btn,
@@ -459,7 +448,6 @@
       .project-open-btn {
         width: 28px;
         height: 28px;
-        flex: 0 0 28px;
       }
       .project-new-thread-btn,
       .project-rename-btn,
@@ -483,19 +471,6 @@
       }
       .workspace-root-menu-btn {
         font-size: 16px;
-      }
-      .workspace-root-secondary-action {
-        display: none;
-        opacity: 0;
-        pointer-events: none;
-      }
-      .workspace-root-row:hover .workspace-root-secondary-action,
-      .workspace-root-row:focus-within .workspace-root-secondary-action {
-        display: inline-grid;
-        width: 28px;
-        flex-basis: 28px;
-        opacity: 1;
-        pointer-events: auto;
       }
       .workspace-thread-list {
         list-style: none;
@@ -1633,11 +1608,6 @@
         background: var(--surface);
         box-shadow: var(--shadow);
         overflow: hidden;
-      }
-      .composer-drop-active {
-        border-color: color-mix(in srgb, var(--accent) 54%, var(--border));
-        background: color-mix(in srgb, var(--accent) 6%, var(--surface));
-        box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent), var(--shadow);
       }
       .composer-status-row {
         min-height: 34px;
