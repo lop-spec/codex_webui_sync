@@ -156,7 +156,8 @@ export class CodexService extends EventEmitter {
   }
 
   public getDisplayResumePath() {
-    return this.lastResumePath || (!this.suppressAutoResume && resumeAllowed() ? this.findDefaultResumePath() : null);
+    const current = this.isExistingResumePath(this.lastResumePath) ? this.lastResumePath : null;
+    return current || (!this.suppressAutoResume && resumeAllowed() ? this.findDefaultResumePath() : null);
   }
 
   public isRunning() {
@@ -225,6 +226,11 @@ export class CodexService extends EventEmitter {
     if (!this.useAppServerBackend()) return this.startExecSession(resumePath);
     let finalResumePath = resumePath;
     if (!finalResumePath && resumeAllowed() && !this.suppressAutoResume) finalResumePath = this.findDefaultResumePath();
+    if (finalResumePath && !this.isExistingResumePath(finalResumePath)) {
+      this.handleAppStartFailure(new Error(`resume path not found: ${finalResumePath}`));
+      this.emit('status_update');
+      return;
+    }
     this.lastResumePath = finalResumePath;
     if (finalResumePath) {
       try {
@@ -771,8 +777,9 @@ export class CodexService extends EventEmitter {
   private applyThreadState(thread: any): void {
     if (!thread || !thread.id) return;
     this.activeThreadId = String(thread.id);
-    if (thread.path) {
-      this.lastResumePath = String(thread.path);
+    const resumePath = thread.path ? String(thread.path) : null;
+    if (this.isExistingResumePath(resumePath)) {
+      this.lastResumePath = resumePath;
       this.recordResume(this.lastResumePath);
     }
     this.applyThreadRuntimeState(thread);
@@ -1130,6 +1137,7 @@ export class CodexService extends EventEmitter {
     if (this.codexProc) return;
     let finalResumePath = resumePath;
     if (!finalResumePath && resumeAllowed() && !this.suppressAutoResume) finalResumePath = this.findDefaultResumePath();
+    if (finalResumePath && !this.isExistingResumePath(finalResumePath)) finalResumePath = null;
     this.lastResumePath = finalResumePath;
     if (finalResumePath) this.recordResume(finalResumePath);
     this.emit('status_update');
@@ -1391,8 +1399,17 @@ export class CodexService extends EventEmitter {
     } catch { return null; }
   }
 
+  private isExistingResumePath(resumePath: string | null): resumePath is string {
+    if (!resumePath) return false;
+    try {
+      return fs.existsSync(path.resolve(resumePath));
+    } catch {
+      return false;
+    }
+  }
+
   private recordResume(resumePath: string) {
-    if (!resumePath) return;
+    if (!this.isExistingResumePath(resumePath)) return;
     const h = readHistory();
     const ts = Date.now();
     h.entries = h.entries || [];
