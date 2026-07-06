@@ -102,6 +102,7 @@ const CLIENT_BUILD = '20260706-manual-projects';
       const composerMoreMenu = $('composerMoreMenu');
       const composerAddAttachment = $('composerAddAttachment');
       const composerAddFolder = $('composerAddFolder');
+      const composerDropSurface = document.querySelector('[data-plus-composer]');
       const composerPlanMenuBtn = $('composerPlanMenuBtn');
       const composerPlanValue = $('composerPlanValue');
       const composerSpeedValue = $('composerSpeedValue');
@@ -435,6 +436,7 @@ const CLIENT_BUILD = '20260706-manual-projects';
       let pinnedPaths = readPinnedPaths();
       let eventStreamStarted = false;
       let composerAttachments = [];
+      let composerDragDepth = 0;
       let queuedFollowUps = [];
       let guidanceState = { pending: 0, saved: 0, count: 0, items: [] };
       let queuePanelCollapsed = false;
@@ -4782,6 +4784,16 @@ const CLIENT_BUILD = '20260706-manual-projects';
         updateComposerControls();
         text.focus();
       }
+      function dataTransferHasFiles(dataTransfer) {
+        return [...(dataTransfer?.types || [])].includes('Files');
+      }
+      function setComposerDropActive(active) {
+        if (!composerDropSurface) return;
+        composerDropSurface.classList.toggle('composer-drop-active', Boolean(active));
+      }
+      function composerAttachmentName(file) {
+        return String(file?.webkitRelativePath || file?.name || 'attachment').replace(/\\/g, '/');
+      }
       function renderAttachments() {
         const tray = $('attachmentTray');
         tray.innerHTML = '';
@@ -4827,20 +4839,34 @@ const CLIENT_BUILD = '20260706-manual-projects';
         }
         return true;
       }
+      async function addComposerFileAttachment(file) {
+        if (!file) return false;
+        if (await addImageAttachment(file)) return true;
+        const name = composerAttachmentName(file);
+        if (file.size > 220 * 1024) {
+          addSystem(`附件过大，已跳过：${name} (${toKB(file.size)})`, true);
+          return true;
+        }
+        try {
+          const body = await file.text();
+          appendToComposer(`<file name="${escapeAttr(name)}">\n${body}\n</file>`);
+        } catch (error) {
+          addSystem(`读取附件失败：${name}：${error.message || error}`, true);
+        }
+        return true;
+      }
       async function handlePickedFiles(files) {
-        const picked = [...files];
+        const picked = [...(files || [])].filter(Boolean);
+        if (!picked.length) return;
+        const limit = 80;
+        let count = 0;
         for (const file of picked) {
-          if (await addImageAttachment(file)) continue;
-          if (file.size > 220 * 1024) {
-            addSystem(`附件过大，已跳过：${file.name} (${toKB(file.size)})`, true);
-            continue;
+          if (count >= limit) {
+            addSystem(`文件数量过多，已只处理前 ${limit} 个。`, true);
+            break;
           }
-          try {
-            const body = await file.text();
-            appendToComposer(`<file name="${file.name}">\n${body}\n</file>`);
-          } catch (error) {
-            addSystem(`读取附件失败：${file.name}：${error.message || error}`, true);
-          }
+          count += 1;
+          await addComposerFileAttachment(file);
         }
       }
       let recognition = null;
@@ -5286,6 +5312,33 @@ const CLIENT_BUILD = '20260706-manual-projects';
         handlePickedFiles(event.currentTarget.files || []);
         event.currentTarget.value = '';
       });
+      if (composerDropSurface) {
+        composerDropSurface.addEventListener('dragenter', (event) => {
+          if (!dataTransferHasFiles(event.dataTransfer)) return;
+          event.preventDefault();
+          composerDragDepth += 1;
+          setComposerDropActive(true);
+        });
+        composerDropSurface.addEventListener('dragover', (event) => {
+          if (!dataTransferHasFiles(event.dataTransfer)) return;
+          event.preventDefault();
+          if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+          setComposerDropActive(true);
+        });
+        composerDropSurface.addEventListener('dragleave', (event) => {
+          if (!dataTransferHasFiles(event.dataTransfer)) return;
+          event.preventDefault();
+          composerDragDepth = Math.max(0, composerDragDepth - 1);
+          if (composerDragDepth === 0) setComposerDropActive(false);
+        });
+        composerDropSurface.addEventListener('drop', (event) => {
+          if (!dataTransferHasFiles(event.dataTransfer)) return;
+          event.preventDefault();
+          composerDragDepth = 0;
+          setComposerDropActive(false);
+          handlePickedFiles(event.dataTransfer?.files || []);
+        });
+      }
       $('dictationBtn').addEventListener('click', toggleDictation);
       sideFilter.addEventListener('input', () => { renderSessions(); renderProjects(); });
       $('timeline').addEventListener('scroll', () => {
