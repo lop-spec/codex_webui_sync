@@ -173,7 +173,7 @@
 - Windows 本地操作默认 shellless：命令执行、文件、打开、注册表、服务、进程、端口、文本、JSON、压缩等一律先触发 `$lop-winops`，走 `C:\Users\lop\.codex\tools\winops\winops.exe <job.json>` 与 UTF-8 job/result 文件。
 - `cmd/pwsh/nu/nush` 只作 bootstrap 或明确例外：当前 Codex 执行工具需要宿主进程启动 winops、winops 尚未覆盖的系统对象/API、或用户点名复现 shell；例外必须说明原因，复杂业务内容不得进入 shell。
 - 2026-07-04 的 `cmd`/`nu` 横评只作为 legacy fallback 参考，不再作为默认路线；若 fallback 出现引号、反引号、空格、中文、管道、括号、重定向、内联代码、JSON/HTML/Markdown/正则或长参数，立即迁回 winops job/result。
-- 固定字符串搜索优先用无空格锚点或多个 `-e` 分开查；只有本层引号已验证稳定时才用 `rg -n -F -- "text" "file"`。正则用 `rg -n -- "pattern" "file"`；带空格、`|`、中文、引号、反引号、标点或外层执行器会拆引号时，必须改 pattern 文件或无空格关键词锚点，禁止切到 `pwsh` 逃避。
+- 固定字符串和正则搜索默认走 `$lop-winops` 的 text/json/fs 能力或通过 winops `exec` argv 调外部工具；只有 legacy fallback 才使用 `rg` 命令行。搜索词带空格、`|`、中文、引号、反引号、标点或外层执行器会拆引号时，必须改 pattern 文件或 winops 输入文件，禁止切到 `pwsh` 逃避。
 - `node -e`/`python -c` 在 `cmd` 里只允许无内层引号、无模板字符串、无 JSON/HTML/正则、无路径、无中文、无多语句、输出不要求引号保真的短表达式；一旦输入或输出涉及引号、JSON、Markdown、代码片段、路径或原样文本，或出现拆引号、`SyntaxError`、`os error 123`、参数被拆，必须立即改临时 `.mjs`/`.py`、argv 或输入文件，禁止继续堆转义硬拼一行。
 - 大复制必须优先使用 `robocopy`；超大枚举、JSON/table、进程/HTTP 结构化管道必须优先使用 `nu`/Nushell，并按专项规则使用 `nu.exe --no-config-file --no-history --no-std-lib -c`。
 - `cmd` 或 `nu` 发生语法、引号、反引号、空格、转义、重定向、编码或管道错误时，禁止直接逃回 `pwsh`；必须先按 `C:\Users\lop\.codex\rules\artifact-apk-windows.md` 的 cmd 统一语法和 `rg/findstr/node -e/python -c/.cmd wrapper/nu -c` 模板分类改写并重跑，记录成功形态。
@@ -181,13 +181,13 @@
 
 ## 12. 文件与产物展示
 
-- 生成产物或需要用户打开目录时，必须给 Windows 原生绝对目录路径和可复制 CMD 打开命令 `start "" "C:\Users\...\dir"`；Markdown 目录链接只作辅助，禁止只给相对目录名或假定客户端一定可点击打开。
+- 生成产物或需要用户打开目录时，必须给 Windows 原生绝对目录路径和可复制 Windows 打开命令 `explorer.exe "C:\Users\...\dir"`，或说明 Codex 已用 winops open 打开；Markdown 目录链接只作辅助，禁止只给相对目录名或假定客户端一定可点击打开。
 - 本节详细执行细则优先维护在 `C:\Users\lop\.codex\rules\artifact-apk-windows.md`；生成产物、APK、安装包或本地路径展示任务必须按需读取。
 - 当 lop 要“报告、总结报告、横评、分析报告”时，最终回复必须先在聊天正文给出可直接阅读的摘要报告，至少包含结论/根因、关键数据或对比表、判断规则、验证证据、未验证项和风险；测试/性能报告必须逐项列出对比对象、样本规模、核心指标、胜者、倍数差或差值、异常点和适用结论，禁止只给总胜负或一句概括；此时正文摘要优先于“目录第一行”产物格式，文件、目录、哈希只能作为补充证据，禁止用“见文件、已生成报告、给路径”替代正文报告。
 - 展示普通本地文件时，只有用户需要精确定位或编辑具体文件才优先给精确文件链接；需要打开目录时按目录打开入口规则。
 - 生成产物交付必须同时给三件套：
   - 第一行单独输出“产物所在目录”的 Windows 原生绝对路径。
-  - 随后给同一目录的可复制 CMD 打开命令 `start "" "C:\Users\...\dist"`，必要时再补 `explorer "C:\Users\...\dist"`。
+  - 随后给同一目录的可复制 Windows 打开命令 `explorer.exe "C:\Users\...\dist"`，或说明 Codex 已用 winops open 打开。
   - 再单独给文件名、完整文件路径或哈希等必要信息；Markdown 目录链接只能作为辅助，禁止只给相对目录名。
 - 禁止只给生成文件路径。
 - 禁止用 `dir-c`、`dist-c` 当链接文字。
