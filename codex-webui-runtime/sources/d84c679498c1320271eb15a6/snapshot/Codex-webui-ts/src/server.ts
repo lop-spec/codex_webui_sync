@@ -164,12 +164,20 @@ function launchWebUiRecovery(mode: 'restart' | 'recover'): { ok: boolean; pid?: 
   fs.mkdirSync(logDir, { recursive: true });
   const out = fs.openSync(path.join(logDir, `webui-${mode}.out.log`), 'a');
   const err = fs.openSync(path.join(logDir, `webui-${mode}.err.log`), 'a');
-  const child = spawn(process.execPath, [scriptPath, '--mode', mode, '--delay', mode === 'restart' ? '900' : '100', '--launch-app'], {
+  const args = mode === 'restart'
+    ? [scriptPath, '--mode', mode, '--delay', '160', '--skip-app-server', '--skip-auto-recover']
+    : [scriptPath, '--mode', mode, '--delay', '100', ...(mode === 'recover' ? ['--launch-app'] : [])];
+  const env = {
+    ...process.env,
+    CODEX_WEBUI_AUTO_RECOVER: mode === 'restart' ? '0' : process.env.CODEX_WEBUI_AUTO_RECOVER
+  };
+  if (env.CODEX_WEBUI_AUTO_RECOVER == null) delete env.CODEX_WEBUI_AUTO_RECOVER;
+  const child = spawn(process.execPath, args, {
     cwd: process.cwd(),
     detached: true,
     windowsHide: true,
     stdio: ['ignore', out, err],
-    env: { ...process.env }
+    env
   });
   child.unref();
   try { fs.closeSync(out); } catch {}
