@@ -13,7 +13,7 @@
     "workspacePath": "C:\\Users\\lop\\Documents\\Codex\\github-ui",
     "scope": "source-rules-skills"
   },
-  "generatedAt": "2026-07-07T09:14:08.253Z",
+  "generatedAt": "2026-07-07T09:14:41.033Z",
   "fullSnapshot": true,
   "mergePolicy": {
     "webui-source": "remote-newer-wins-then-verify",
@@ -788,8 +788,8 @@
     },
     {
       "path": "RULES.md",
-      "sha": "900b7096d7f75c9fc0e131e904f6b9570df91716",
-      "size": 6049,
+      "sha": "fd1ed02aaa407f889d58b79b5f1f259d6e17cbba",
+      "size": 6033,
       "category": "rules"
     },
     {

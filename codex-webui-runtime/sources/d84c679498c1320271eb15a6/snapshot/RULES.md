@@ -16,7 +16,7 @@
 
 - `Codex-webui-ts` 与 `Codex-webui-react` 的同步验收以逻辑/UI 等价为准，不要求逐字相同；每次改动 WebUI 或 React 源码、规则、ledger 后，必须至少运行 `npm run parity:check`。
 - 交付功能改动、UI 改动或源码等价任务前，必须运行 `npm run parity:check:full`；该命令会先做双向语义签名检测，再串两边构建、静态检查和测试。
-- 本地 WebUI <-> React watcher、GitHub -> React apply、React -> GitHub sync 默认关闭；需要时只用手动入口 `npm run parity:watch` / `npm run parity:watch:full`、`npm run github:sync:*:react`、`npm run github:pull:*:react` 或显式 `--with-react` 临时开启。默认 GitHub sync/pull 不包含 `Codex-webui-react/**`。
+- 本地 WebUI <-> React watcher、GitHub -> React apply、React -> GitHub sync 全部硬关闭；不得保留 `npm run github:sync:*:react`、`npm run github:pull:*:react`、`--with-react` 或 `GITHUB_SYNC_REACT` 这类临时开启入口。GitHub sync/pull 一律不包含、不监听、不写入 `Codex-webui-react/**`。
 - 两边 `tests/` 是隔离验证代码，不属于同步检测对象，也不触发 watcher；full 模式可以运行现有测试做验证，但不得要求测试源码彼此等价。
 - 每次同步检测必须记录本地步骤耗时到 `outputs/parity-sync/performance-log.jsonl`，刷新 `outputs/parity-sync/performance-comparison.md`；不再创建或维护置顶会话“性能对比”。耗时口径只统计本地检测/命令执行，不把大模型等待误差算入性能比较。
 - React 侧已明确排除 Git UI 与内嵌终端 UI；检测器只能在 manifest 标记允许排除的前端 shell/app.js 比对中跳过这些锚点，其他后端/API/状态能力仍按双向检测执行。
