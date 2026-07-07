@@ -247,7 +247,7 @@ const CLIENT_BUILD = '20260707-local-dir-open-v5';
       function recordTurnStarted(sessionPath = activeRuntimeResumePath || currentResumePath) {
         lastTurnStartedAt = Date.now();
         latestAgentMessageText = '';
-        activeStreamSessionPath = sessionPath || currentResumePath || activeStreamSessionPath || '';
+        activeStreamSessionPath = sessionPath || activeRuntimeResumePath || '';
       }
       function maybeNotifyAgentCompletion(textValue) {
         const completedAtMs = Date.now();
@@ -2443,15 +2443,31 @@ const CLIENT_BUILD = '20260707-local-dir-open-v5';
       function explicitEventSessionPath(data = {}) {
         return data.resume_path || data.sessionPath || data.path || '';
       }
+      function hasEventScopeIdentity(data = {}) {
+        return Boolean(data.threadId || data.turnId || data.itemId);
+      }
       function sessionPathForStreamingEvent(data = {}) {
-        return explicitEventSessionPath(data) || activeStreamSessionPath || activeRuntimeResumePath || currentResumePath || '';
+        const explicitPath = explicitEventSessionPath(data);
+        if (explicitPath) return explicitPath;
+        if (hasEventScopeIdentity(data)) return '';
+        return activeRuntimeResumePath || '';
       }
       function shouldRenderStreamingEvent(sessionPath) {
-        return !sessionPath || !currentResumePath || sameSessionPath(sessionPath, currentResumePath);
+        return Boolean(sessionPath) && (!currentResumePath || sameSessionPath(sessionPath, currentResumePath));
       }
       function shouldRenderSessionEvent(data = {}) {
         const explicitPath = explicitEventSessionPath(data);
-        return !explicitPath || shouldRenderStreamingEvent(explicitPath);
+        if (explicitPath) return shouldRenderStreamingEvent(explicitPath);
+        if (hasEventScopeIdentity(data)) return false;
+        return !activeRuntimeResumePath || shouldRenderStreamingEvent(activeRuntimeResumePath);
+      }
+      function streamEventKey(data = {}, sessionPath = sessionPathForStreamingEvent(data)) {
+        return [
+          normalizeSessionPath(sessionPath || ''),
+          String(data.threadId || ''),
+          String(data.turnId || ''),
+          String(data.itemId || '')
+        ].join('|');
       }
       function projectName(workdir) {
         return String(workdir || '').split(/[\\/]/).filter(Boolean).pop() || '新对话';
