@@ -5630,9 +5630,9 @@ const CLIENT_BUILD = '20260707-local-dir-open-v4';
       $('recoverBtn').addEventListener('click', async () => {
         await requestWebUiServiceAction('recover');
       });
-      $('openSettingsBtn').addEventListener('click', async () => { await loadConfig(); openModal('settingsModal'); });
-      $('modelSelectBtn').addEventListener('click', async () => { await loadConfig(); openModal('settingsModal'); });
-      $('effortSelectBtn').addEventListener('click', async () => { await loadConfig(); openModal('settingsModal'); });
+      $('openSettingsBtn').addEventListener('click', async () => { await openSettingsPage('model'); });
+      $('modelSelectBtn').addEventListener('click', async () => { await openSettingsPage('model'); });
+      $('effortSelectBtn').addEventListener('click', async () => { await openSettingsPage('model'); });
       $('permissionBtn').addEventListener('click', (event) => { event.stopPropagation(); openPermissionMenu().catch((error) => addSystem(`权限菜单打开失败：${error.message || error}`, true)); });
       $('localModeBtn').addEventListener('click', () => addSystem('当前会话运行在本地 Codex CLI。'));
       $('openMemoryBtn').addEventListener('click', async () => { await loadMemory(); openModal('memoryModal'); });
@@ -5645,6 +5645,12 @@ const CLIENT_BUILD = '20260707-local-dir-open-v4';
         await saveConfig();
         await fetch('/restart', { method:'POST' });
         closeModal('settingsModal');
+      });
+      settingsNavItems.forEach((item) => {
+        item.addEventListener('click', () => setSettingsSection(item.dataset.settingsTarget || 'model'));
+      });
+      organizeSessionTitlesBtn?.addEventListener('click', () => {
+        organizeSessionTitles().catch((error) => setSettingsStatus(`整理失败：${error.message || error}`, true));
       });
       $('attachmentBtn').addEventListener('click', (event) => {
         event.stopPropagation();
