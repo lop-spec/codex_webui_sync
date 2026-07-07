@@ -1,4 +1,4 @@
-const CLIENT_BUILD = '20260707-local-dir-open-v5';
+const CLIENT_BUILD = '20260707-session-title-v1';
       document.documentElement.dataset.webuiBuild = CLIENT_BUILD;
       const DEBUG_NO_EVENTS = new URLSearchParams(location.search).has('debug_no_events');
       const SIDEBAR_VISIBLE_LIMIT = 10;

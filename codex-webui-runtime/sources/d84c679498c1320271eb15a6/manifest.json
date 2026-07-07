@@ -13,7 +13,7 @@
     "workspacePath": "C:\\Users\\lop\\Documents\\Codex\\github-ui",
     "scope": "source-rules-skills"
   },
-  "generatedAt": "2026-07-07T08:30:04.335Z",
+  "generatedAt": "2026-07-07T08:30:35.549Z",
   "fullSnapshot": true,
   "mergePolicy": {
     "webui-source": "remote-newer-wins-then-verify",
@@ -224,8 +224,8 @@
     },
     {
       "path": "Codex-webui-react/src/client/legacy-shell.ts",
-      "sha": "0da680c68ac37fc1b0956d1afb4c2419dc7cf020",
-      "size": 38806,
+      "sha": "51bbf71af59a8feaf0ba0fe1db3dcbf9c84bf449",
+      "size": 38802,
       "category": "webui-source"
     },
     {
@@ -278,8 +278,8 @@
     },
     {
       "path": "Codex-webui-react/static/js/app.js",
-      "sha": "371f7a9ee6af49ac70d1d10d266288fa3ca7739f",
-      "size": 310448,
+      "sha": "986dc4dd8e3dab03bd24c21dca98935be4721561",
+      "size": 310447,
       "category": "webui-source"
     },
     {
