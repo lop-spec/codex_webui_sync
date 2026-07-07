@@ -5352,7 +5352,7 @@ const CLIENT_BUILD = '20260707-local-dir-open-v5';
           const data = JSON.parse(event.data);
           const eventSessionPath = sessionPathForStreamingEvent(data);
           if (!shouldRenderStreamingEvent(eventSessionPath)) return;
-          activeStreamSessionPath = eventSessionPath || currentResumePath || activeRuntimeResumePath || '';
+          activeStreamSessionPath = eventSessionPath;
           if (pendingEditedUserEcho && Date.now() < pendingEditedUserEcho.expiresAt && String(data.text || '').trim() === pendingEditedUserEcho.text) {
             pendingEditedUserEcho = null;
             return;
@@ -5364,12 +5364,18 @@ const CLIENT_BUILD = '20260707-local-dir-open-v5';
           const data = JSON.parse(event.data);
           const eventSessionPath = sessionPathForStreamingEvent(data);
           if (!shouldRenderStreamingEvent(eventSessionPath)) return;
-          activeStreamSessionPath = eventSessionPath || currentResumePath || activeRuntimeResumePath || '';
+          activeStreamSessionPath = eventSessionPath;
+          const nextStreamKey = streamEventKey(data, activeStreamSessionPath);
+          if (streamEl && streamEl.dataset.streamKey && streamEl.dataset.streamKey !== nextStreamKey) streamEl = null;
           if (streamEl && streamEl.dataset.sessionPath && !sameSessionPath(streamEl.dataset.sessionPath, activeStreamSessionPath)) streamEl = null;
           if (!streamEl) {
             if (emptyState) emptyState.style.display = 'none';
             streamEl = addBubble('', 'agent', { status: 'streaming', turnId: activeTurnId, question: questionForAssistant({ turnId: activeTurnId }), sessionPath: activeStreamSessionPath });
+            streamEl.dataset.streamKey = nextStreamKey;
           }
+          streamEl.dataset.threadId = String(data.threadId || '');
+          streamEl.dataset.turnId = String(data.turnId || activeTurnId || '');
+          streamEl.dataset.itemId = String(data.itemId || '');
           const inner = streamEl.querySelector('.message-text');
           const raw = (streamEl.dataset.raw || '') + (data.text || '');
           latestAgentMessageText = raw;
@@ -5387,18 +5393,23 @@ const CLIENT_BUILD = '20260707-local-dir-open-v5';
             if (sameSessionPath(activeStreamSessionPath, eventSessionPath)) activeStreamSessionPath = null;
             return;
           }
-          activeStreamSessionPath = eventSessionPath || currentResumePath || activeRuntimeResumePath || '';
+          activeStreamSessionPath = eventSessionPath;
+          const nextStreamKey = streamEventKey(data, activeStreamSessionPath);
+          const hasMatchingStream = Boolean(streamEl && streamEl.dataset.streamKey === nextStreamKey);
+          if (streamEl && !hasMatchingStream) streamEl = null;
           if (streamEl && streamEl.dataset.sessionPath && !sameSessionPath(streamEl.dataset.sessionPath, activeStreamSessionPath)) streamEl = null;
-          const finalText = stripInternalMemoryBlocks(data.text || latestAgentMessageText);
-          const meta = maybeNotifyAgentCompletion(data.text || latestAgentMessageText);
+          const finalRawText = data.text || (hasMatchingStream && streamEl ? streamEl.dataset.raw : '') || '';
+          if (!finalRawText) return;
+          const finalText = stripInternalMemoryBlocks(finalRawText);
+          const meta = maybeNotifyAgentCompletion(finalRawText);
           if (streamEl) {
             streamEl.dataset.status = 'done';
             const statusEl = streamEl.querySelector('.message-status');
             if (statusEl) statusEl.textContent = bubbleStatusLabel('done');
-            applyAssistantMetadata(streamEl, finalText, { ...meta, turnId: meta.turnId || activeTurnId, question: questionForAssistant({ turnId: meta.turnId || activeTurnId }), sessionPath: activeStreamSessionPath || currentResumePath });
+            applyAssistantMetadata(streamEl, finalText, { ...meta, turnId: meta.turnId || data.turnId || activeTurnId, question: questionForAssistant({ turnId: meta.turnId || data.turnId || activeTurnId }), sessionPath: activeStreamSessionPath });
             streamEl = null;
           } else {
-            addBubble(finalText, 'agent', { ...meta, turnId: meta.turnId || activeTurnId, question: questionForAssistant({ turnId: meta.turnId || activeTurnId }), sessionPath: activeStreamSessionPath || currentResumePath });
+            addBubble(finalText, 'agent', { ...meta, turnId: meta.turnId || data.turnId || activeTurnId, question: questionForAssistant({ turnId: meta.turnId || data.turnId || activeTurnId }), sessionPath: activeStreamSessionPath });
           }
           activeStreamSessionPath = null;
         });
