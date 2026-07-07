@@ -4,6 +4,7 @@ const CLIENT_BUILD = '20260706-reply-layout-v1';
       const SIDEBAR_VISIBLE_LIMIT = 10;
       const PROJECT_THREAD_RECENT_WINDOW_MS = 30 * 60 * 1000;
       const COMPOSER_DRAFT_KEY = 'plusComposerDraft';
+      const PENDING_USER_ECHO_TTL_MS = 30000;
 
       const $ = (id) => document.getElementById(id);
       const log = $('log');
@@ -281,6 +282,51 @@ const CLIENT_BUILD = '20260706-reply-layout-v1';
         if (turnId && turnQuestionText.has(turnId)) return turnQuestionText.get(turnId) || '';
         return latestUserQuestionText || '';
       }
+      function normalizePendingUserEchoText(value) {
+        return stripInternalMemoryBlocks(String(value || '')).trim();
+      }
+      function prunePendingUserEchoes(now = Date.now()) {
+        pendingUserEchoes = pendingUserEchoes.filter((item) => item.expiresAt > now);
+      }
+      function mergedGuidanceEchoText(items) {
+        if (items.length === 1) return items[0].text;
+        return items.map((item, index) => `引导 ${index + 1}:\n${item.text}`).join('\n\n');
+      }
+      function consumePendingUserEcho(textValue) {
+        const text = normalizePendingUserEchoText(textValue);
+        if (!text) return false;
+        prunePendingUserEchoes();
+        const exactIndex = pendingUserEchoes.findIndex((item) => item.text === text);
+        if (exactIndex !== -1) {
+          pendingUserEchoes.splice(exactIndex, 1);
+          return true;
+        }
+        const guidanceEchoes = pendingUserEchoes.filter((item) => item.kind === 'guidance');
+        if (guidanceEchoes.length && mergedGuidanceEchoText(guidanceEchoes) === text) {
+          const consumed = new Set(guidanceEchoes);
+          pendingUserEchoes = pendingUserEchoes.filter((item) => !consumed.has(item));
+          return true;
+        }
+        return false;
+      }
+      function showPendingUserEcho(textValue, options = {}) {
+        const text = normalizePendingUserEchoText(textValue);
+        if (!text) return null;
+        prunePendingUserEchoes();
+        pendingUserEchoes.push({
+          text,
+          kind: options.kind || 'pending',
+          expiresAt: Date.now() + PENDING_USER_ECHO_TTL_MS
+        });
+        return addBubble(text, 'user', {
+          ...options,
+          status: options.status || '已发送',
+          turnId: '',
+          sessionPath: options.sessionPath || currentResumePath || activeRuntimeResumePath || '',
+          attachments: options.attachments || [],
+          rememberQuestion: options.rememberQuestion !== false
+        });
+      }
       function isVisible(el) {
         if (!el) return false;
         const style = getComputedStyle(el);
@@ -451,6 +497,7 @@ const CLIENT_BUILD = '20260706-reply-layout-v1';
       let lastCompletionNotificationAt = 0;
       let messageEditState = null;
       let pendingEditedUserEcho = null;
+      let pendingUserEchoes = [];
       let pendingUserInputRequest = null;
       let userInputPromptCurrentIndex = 0;
       let userInputSelectedOptions = {};
@@ -2725,7 +2772,7 @@ const CLIENT_BUILD = '20260706-reply-layout-v1';
         row.className = `bubble ${kind}`;
         row.dataset.status = options.status || 'done';
         if (options.turnId) row.dataset.turnId = options.turnId;
-        if (kind === 'user') rememberUserQuestion(messageText, options);
+        if (kind === 'user' && options.rememberQuestion !== false) rememberUserQuestion(messageText, options);
         const actionMarkup = kind === 'user' ? renderUserMessageActions(options) : '';
         row.innerHTML = `<div class="bubble-card">${messageHeader(kind, options.status || '')}<div class="message-text">${renderMarkdownBlocks(messageText)}</div>${renderAttachmentImages(options.attachments || [])}${actionMarkup}</div>`;
         if (kind === 'user' && options.turnId) {
@@ -4839,6 +4886,13 @@ const CLIENT_BUILD = '20260706-reply-layout-v1';
           }
           if ('guidance' in data) applyGuidanceState(data.guidance);
           if (data.status === 'guidance_pending') {
+            showPendingUserEcho(promptText, {
+              kind: 'guidance',
+              status: '引导',
+              attachments,
+              sessionPath: currentResumePath || activeRuntimeResumePath || '',
+              rememberQuestion: false
+            });
             deliverAppNotification({ title: '引导已接收', body: '正在后台合并到当前回复，失败不会自动重跑。', kind: 'info', minVisible: false });
           }
           updateComposerControls();
@@ -5099,6 +5153,7 @@ const CLIENT_BUILD = '20260706-reply-layout-v1';
           const eventSessionPath = sessionPathForStreamingEvent(data);
           if (!shouldRenderStreamingEvent(eventSessionPath)) return;
           activeStreamSessionPath = eventSessionPath || currentResumePath || activeRuntimeResumePath || '';
+          if (consumePendingUserEcho(data.text || '')) return;
           if (pendingEditedUserEcho && Date.now() < pendingEditedUserEcho.expiresAt && String(data.text || '').trim() === pendingEditedUserEcho.text) {
             pendingEditedUserEcho = null;
             return;
