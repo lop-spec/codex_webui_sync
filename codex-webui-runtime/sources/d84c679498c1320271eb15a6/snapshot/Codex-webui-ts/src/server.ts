@@ -852,7 +852,7 @@ function windowsPowerShellCommand(): string {
 }
 
 function shellExecuteWindowsScript(targetPath: string, kind: OpenTarget['kind']): string {
-  const verb = kind === 'file' ? 'open' : 'explore';
+  const verb = 'open';
   return [
     '[Console]::OutputEncoding=[System.Text.Encoding]::UTF8',
     '$shell = New-Object -ComObject Shell.Application',
