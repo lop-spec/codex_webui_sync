@@ -316,6 +316,19 @@ function normalizeOpenPath(value: unknown): string {
   if ((requested.startsWith('<') && requested.endsWith('>')) || (requested.startsWith('"') && requested.endsWith('"'))) {
     requested = requested.slice(1, -1).trim();
   }
+  if (/^file:\/\//i.test(requested)) {
+    try {
+      requested = fileURLToPath(requested);
+    } catch {
+      try {
+        const fileUrl = new URL(requested);
+        let decodedPath = decodeURIComponent(fileUrl.pathname);
+        if (fileUrl.host && fileUrl.host !== 'localhost') decodedPath = `//${fileUrl.host}${decodedPath.startsWith('/') ? decodedPath : `/${decodedPath}`}`;
+        if (process.platform === 'win32') decodedPath = decodedPath.replace(/^\/([A-Za-z]:)/, '$1');
+        requested = decodedPath;
+      } catch {}
+    }
+  }
   try { requested = decodeURI(requested); } catch {}
   return requested;
 }
