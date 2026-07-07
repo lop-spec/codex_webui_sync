@@ -689,6 +689,9 @@
         width: 16px;
         height: 16px;
       }
+      .composer-status-row .question-jump {
+        margin-left: auto;
+      }
       .thread-heading {
         min-width: 0;
         display: flex;
