@@ -28,7 +28,7 @@ import { deleteMcpServer, listMcpServers, saveMcpServer, toggleMcpServer, writeS
 import { getQuickPreview } from './services/preview.js';
 import { deleteSkill, listSkills, setSkillEnabled } from './services/skills.js';
 import { killTerminalSession, listTerminalSessions, resizeTerminalSession, spawnTerminalSession, writeTerminalStdin } from './services/terminal.js';
-import { scanSessions, parseSessionMessages, parseSessionMessagesPage, isWithinSessions, readHistory, writeHistory } from './utils/fs-helpers.js';
+import { clearSessionSummaryCache, scanSessions, parseSessionMessages, parseSessionMessagesPage, isWithinSessions, readHistory, writeHistory } from './utils/fs-helpers.js';
 import type { History, HistoryEntry, ProjectRoot, SessionEntry } from './types.js';
 import {
   cleanupExpiredTransfers,
@@ -67,7 +67,7 @@ const AUTO_RECOVER_INTERRUPTED_TURNS = (() => {
   if (['0', 'false', 'no', 'off'].includes(raw)) return false;
   return PORT === 5055;
 })();
-const UI_BUILD = '20260707-local-dir-open-v4';
+const UI_BUILD = '20260707-session-title-v1';
 const STATIC_ASSETS = ['index.html', 'css/app.css', 'js/app.js', 'js/transfer.js'];
 const UPLOAD_DIR = process.env.CODEX_WEBUI_UPLOADS ? path.resolve(process.env.CODEX_WEBUI_UPLOADS) : path.resolve(process.cwd(), 'uploads');
 const SESSIONS_ROOT = path.join(os.homedir(), '.codex', 'sessions');
