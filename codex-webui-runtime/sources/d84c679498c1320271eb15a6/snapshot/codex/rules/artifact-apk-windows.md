@@ -12,22 +12,10 @@
 - `winops.exe` job 必须把 `op`、`input`、路径和参数分开写；破坏性操作默认 dry-run，实际执行必须同时设置 `dryRun:false` 和 `confirm:true`；删除默认进 `%USERPROFILE%\.codex\quarantine\winops`，不得默认硬删。
 - 总原则：最稳方案不是继续修 shell 转义，而是让业务输入完全退出 shell 命令行；失败默认按规则迁移到 winops job/result，不再归因给 `cmd`、`nu` 或外层转义。
 - legacy fallback 转换顺序：只有 winops 不覆盖或用户明确要求 shell 时，才生成目标 shell 标准形态；仍不稳定就停止堆转义，改成 winops job、参数文件或输入文件。
-- `cmd` 标准入口优先用 `cmd.exe /d /q /v:off /s /c "..."`；程序路径含空格时标准形态是 `cmd.exe /d /q /v:off /s /c ""C:\Program Files\Tool\tool.exe" "arg with space""`。在 `exec_command` 等外层还会解析引号的场景，先保留这个目标形态，再按外层要求把内层 `"` 成对加倍或改临时 `.cmd`，不要凭感觉混写。
-- 简单读文件、查文本、列目录、`rg/git/jq/where` 等外部工具必须用 `cmd`；`exec_command(shell="cmd")` 只用于无嵌套引号、无空格敏感参数、无 `|&<>()^%!` 控制符的扁平命令体。
-- cmd 元字符作字面量时用 caret 转义：`^&`、`^|`、`^<`、`^>`、`^(`、`^)`、`^^`。双引号内的元字符通常作为参数字符传给目标程序；若外层会剥掉双引号，立即改临时 `.cmd` 或参数文件。
-- 空格路径和空格参数用双引号包住完整 argv；单引号在 cmd 里不是 quoting，只是普通字符；反引号在 cmd 里也是普通字符，禁止把 PowerShell 的反引号当 cmd 转义符，反引号出错时优先判定为外层解析问题并改 `.cmd`/文件输入。
-- 变量默认用 `set "NAME=value"` 和 `%NAME%`；默认 `/v:off` 防止 `!` 被延迟扩展吞掉。批处理文件中要输出字面 `%` 写 `%%`；变量值本身含字面双引号时，不要混进 `set "..."`，改文件输入/参数文件，或用纯 cmd caret 形态单独验证；需要循环内更新变量时才显式 `/v:on` 并处理 `!`。
-- 固定字符串搜索优先用无空格锚点或多个 `-e` 分开查；只有本层引号已验证稳定时才用 `rg -n -F -- "text" "file"`。正则优先 `rg -n -- "pattern" "file"`；含空格、`|`、引号、反引号、中文、换行、复杂正则或大量标点时，统一改 pattern 文件：`rg -n -F -f patterns.txt -- "file"`，或改无空格关键词锚点，不要继续堆转义。
-- `findstr` 只用于单词级简单过滤；多词、中文、标点、正则、括号和路径有空格时，改用 `rg -F`、`rg -e`、pattern 文件或脚本探针。
-- 大复制优先 `robocopy`；超大枚举或结构化管道必须优先用 `nu`。
-- `cmd` 中禁止使用 PowerShell 语法如 `$ts=...`、`$(...)`、对象管道和反引号转义；需要时间戳用纯 cmd 语法、固定文件名或临时脚本。
-- `node -e`、`python -c`、JSON、HTML、正则和多行逻辑只允许无内层引号、无模板字符串、无路径、无中文、无 shell 元字符、输出不要求引号保真的短表达式；只要 JS/Python 代码或输出需要字符串字面量、模板字符串、JSON/HTML/正则、Markdown、代码片段、路径、中文、多语句、换行或原样引号，必须改临时 `.mjs`/`.py` 加 argv/文件输入，不能继续硬拼一行。
-- 在 `exec_command(shell="cmd")` 等外层还会解析引号的场景，`node -e`/`python -c` 第一次出现拆引号、输出引号丢失/错位、`SyntaxError`、`os error 123`、参数被拆或搜索词被当文件名时，立即停止内联，写临时脚本、pattern 文件或参数文件后用 `cmd` 执行；禁止为了省一步继续二次、三次堆转义。
-- Windows 下从 Node/脚本启动 `.cmd` wrapper 易受 spawn/引号影响；能定位到真实 JS/EXE 入口就直调入口，必须跑 `.cmd`/`npm` 时用 shell 模式或显式 `cmd.exe /d /s /c`。
-- 当前 `exec_command(shell="cmd")` 中，路径不含空格且命令扁平时可不加引号；路径含空格或参数需要引号时，进入复杂 wrapper/参数文件模板，不能把引号当字面量传给 `rg/python/nu` 导致 `os error 123`。
-- `nu`/`nush` 一律按 Nushell 处理：优先用 `C:\Users\lop\AppData\Local\Programs\nu\bin\nu.exe --no-config-file --no-history --no-std-lib -c "..."`；脚本内路径用正斜杠和单引号，外部命令加 `^`，丢弃输出用 `| ignore`，避免把 `>nul`、`%VAR%`、`&&`、`||` 等 cmd 语法塞进 nu。
-- `cmd` 或 `nu` 发生语法、引号、重定向、编码或管道错误时，禁止直接逃回 `pwsh`；必须先按上面模板分类改写并重跑，记录成功形态。只有 wrapper/脚本/参数文件仍失败，且任务属于本文件列出的 PowerShell 例外，才可临时用 `pwsh` 并说明原因。
-- 若某类 `cmd/nu` 语法错误被修成可复用通用格式，必须立即写入本文件或项目 `RULES.md`，并验证触发词可命中。
+- Legacy shell fallback 只用于用户点名 shell 复现、winops 未覆盖对象/API，或当前 Codex 执行器只能借 shell 启动 `winops.exe` 的 bootstrap；fallback 命令必须短、只读、无复杂 payload，并在回复或执行记录里说明原因。
+- 若 fallback 第一次出现拆参、乱码、`SyntaxError`、`os error 123`、重定向/管道/引号失败，立即停止 shell 方向，改 winops job、参数文件、pattern 文件或输入文件；禁止二次、三次堆 `cmd/nu/pwsh/nush` 转义。
+- `.cmd/.bat/npm` wrapper 默认不跑；能定位真实 `.exe/.js` 入口就通过 winops `exec` argv 直调。用户明确要求 wrapper 复现时才允许 shell fallback。
+- `node -e`、`python -c`、JSON、HTML、Markdown、正则、多行逻辑、中文或原样引号输出默认禁止进命令行；写临时脚本或输入文件后由 winops argv 执行。
 
 ## 本地文件/产物展示
 
