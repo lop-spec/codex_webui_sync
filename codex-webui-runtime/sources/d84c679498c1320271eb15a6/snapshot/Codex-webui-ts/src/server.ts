@@ -67,7 +67,7 @@ const AUTO_RECOVER_INTERRUPTED_TURNS = (() => {
   if (['0', 'false', 'no', 'off'].includes(raw)) return false;
   return PORT === 5055;
 })();
-const UI_BUILD = '20260707-question-jump-v1';
+const UI_BUILD = '20260707-question-jump-composer-v2';
 const STATIC_ASSETS = ['index.html', 'css/app.css', 'js/app.js', 'js/transfer.js'];
 const UPLOAD_DIR = process.env.CODEX_WEBUI_UPLOADS ? path.resolve(process.env.CODEX_WEBUI_UPLOADS) : path.resolve(process.cwd(), 'uploads');
 const SESSIONS_ROOT = path.join(os.homedir(), '.codex', 'sessions');

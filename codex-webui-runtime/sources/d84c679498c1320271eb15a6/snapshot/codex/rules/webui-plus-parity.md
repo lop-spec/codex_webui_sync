@@ -8,7 +8,7 @@
 - 参考截图/客户端 UI 还原必须逐项对比参考源码/截图的布局、间距、层级、文案、按钮语义和真实功能。
 - 禁止用自定义简化按钮、假按钮、假数据、固定提示词或视觉近似冒充原功能。
 - 用户指出网页截图/UI 异常时，必须复现当前页面状态，检查真实 DOM、接口返回、前端控制台和相关代码后再修复。
-- 用户指出 Codex WebUI 聊天内容里的本地目录、文件路径、Markdown 超链接或“目录链接”打不开时，必须先复现 WebUI 消息渲染与点击链路，检查 `.local-path-link`、`renderInlineMarkdown`/`linkRawLocalPaths`、`/path/open` 和运行态 `/asset-version`；禁止先按本机资源管理器、手工 `start` 命令或 OS 文件关联问题处理。
+- 用户指出 Codex WebUI 聊天内容里的本地目录、文件路径、Markdown 超链接或“目录链接”打不开时，必须先复现 WebUI 消息渲染与点击链路，检查 `.local-path-link`、`renderInlineMarkdown`/`linkRawLocalPaths`、外部绝对目录的 `/path/open` 和运行态 `/asset-version`；禁止先按本机资源管理器、手工 `start` 命令或 OS 文件关联问题处理。
 
 ## 范围控制
 
