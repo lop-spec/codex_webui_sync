@@ -168,6 +168,7 @@ export function summarizeSessionTitle(value: unknown, max = SESSION_TITLE_MAX_CH
   const clauses = sentence
     .split(/[，,；;]/)
     .map((part) => part.trim().replace(/^(并且|然后|同时|以及|还有)\s*/, ''))
+    .filter((part) => !/(?:隐藏|显示|展示).{0,12}多少分钟前|多少分钟前/.test(part))
     .filter(Boolean);
   if (!clauses.length) return trimTitleChars(sentence, max);
   let title = '';
