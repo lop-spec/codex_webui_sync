@@ -12,6 +12,7 @@ const HISTORY_FILE = process.env.CODEX_WEBUI_HISTORY_FILE
   : path.resolve(__dirname, '../../history.json');
 const SESS_ROOT = path.join(os.homedir(), '.codex', 'sessions');
 const DEFAULT_SESSION_MESSAGE_LIMIT = 120;
+const SESSION_TITLE_MAX_CHARS = 30;
 const sessionSummaryCache = new Map<string, { mtimeMs: number; size: number; summary: Pick<SessionEntry, 'title' | 'cwd' | 'messageCount'> }>();
 const sessionMessagesCache = new Map<string, { mtimeMs: number; size: number; messages: Message[] }>();
 
@@ -41,6 +42,23 @@ export const isWithinSessions = (p: string): boolean => p ? comparablePath(p).st
 
 function normalizeText(value: unknown): string {
   return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+function titleCharLength(value: string): number {
+  return [...value].length;
+}
+
+function trimTitleChars(value: string, max = SESSION_TITLE_MAX_CHARS): string {
+  const chars = [...String(value || '').trim()];
+  if (chars.length <= max) return chars.join('');
+  return `${chars.slice(0, Math.max(0, max - 1)).join('').trim()}…`;
+}
+
+function joinTitleClauses(parts: string[]): string {
+  return parts.reduce((out, part) => {
+    if (!out) return part;
+    return /[A-Za-z0-9]$/.test(out) && /^[A-Za-z0-9]/.test(part) ? `${out} ${part}` : `${out}${part}`;
+  }, '');
 }
 
 function stripInternalMessageBlocks(value: unknown): string {
@@ -130,6 +148,39 @@ function summaryMessageText(value: unknown): string {
   return text;
 }
 
+export function summarizeSessionTitle(value: unknown, max = SESSION_TITLE_MAX_CHARS): string {
+  let text = summaryMessageText(value)
+    .replace(/```[\s\S]*?```/g, '代码')
+    .replace(/`([^`]{1,120})`/g, '$1')
+    .replace(/\[[^\]]{1,80}\]\([^)]+\)/g, '$1')
+    .replace(/https?:\/\/\S+/gi, '链接')
+    .replace(/^[-*#>\s]+/g, '')
+    .replace(/^(我希望|希望|我想|想要|请你?|麻烦|帮我|帮忙|需要|能不能|可以|把|将|让)\s*/i, '')
+    .replace(/^(每个|所有|现有的?)\s*/, '')
+    .replace(/生成的标题是/g, '标题')
+    .replace(/自动提取核心内容并精简控制在最大显示范围内/g, '自动提取并精简')
+    .replace(/鼠标放在([^，,。.!?；;]{1,18})处会自动隐藏/g, '$1隐藏')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!text) return '';
+  const primary = text.split(/\n{2,}/)[0] || text;
+  const sentence = (primary.split(/[。！？!?]/).find(Boolean) || primary).trim();
+  const clauses = sentence
+    .split(/[，,；;]/)
+    .map((part) => part.trim().replace(/^(并且|然后|同时|以及|还有)\s*/, ''))
+    .filter(Boolean);
+  if (!clauses.length) return trimTitleChars(sentence, max);
+  let title = '';
+  for (const part of clauses) {
+    const next = joinTitleClauses([title, part]);
+    if (title && titleCharLength(next) > max) break;
+    title = next;
+    if (titleCharLength(title) >= Math.floor(max * 0.72)) break;
+  }
+  if (!title) title = clauses[0] || sentence;
+  return trimTitleChars(title, max);
+}
+
 function pushMessage(out: Message[], role: string, text: unknown, extra: Partial<Message> = {}): void {
   const normalized = stripInternalMessageBlocks(text);
   if (!normalized) return;
@@ -211,7 +262,7 @@ function readSessionSummary(filePath: string): Pick<SessionEntry, 'title' | 'cwd
     if (seenMessages.has(key)) return;
     seenMessages.add(key);
     messageCount++;
-    if (!title && role === 'user') title = text.slice(0, 88);
+    if (!title && role === 'user') title = summarizeSessionTitle(text);
   };
   try {
     const raw = fs.readFileSync(filePath, 'utf8');
@@ -238,6 +289,10 @@ function readSessionSummary(filePath: string): Pick<SessionEntry, 'title' | 'cwd
     }
   } catch {}
   return { title, cwd, messageCount };
+}
+
+export function clearSessionSummaryCache(): void {
+  sessionSummaryCache.clear();
 }
 
 function getSessionSummary(filePath: string, stat: fs.Stats): Pick<SessionEntry, 'title' | 'cwd' | 'messageCount'> {
