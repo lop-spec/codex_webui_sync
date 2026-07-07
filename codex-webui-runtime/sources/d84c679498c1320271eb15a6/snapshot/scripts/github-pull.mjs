@@ -586,13 +586,14 @@ export async function pullOnce({ rootDir = root, syncConfig, pullConfig, dryRun 
 }
 
 function parseArgs(argv = process.argv.slice(2)) {
-  const out = { status: false, once: false, watch: false, dryRun: false, json: false };
+  const out = { status: false, once: false, watch: false, dryRun: false, json: false, withReact: false };
   for (const arg of argv) {
     if (arg === '--status') out.status = true;
     else if (arg === '--once') out.once = true;
     else if (arg === '--watch') out.watch = true;
     else if (arg === '--dry-run') out.dryRun = true;
     else if (arg === '--json') out.json = true;
+    else if (arg === '--with-react') out.withReact = true;
     else if (arg === '--help' || arg === '-h') out.help = true;
     else throw new Error(`unknown argument: ${arg}`);
   }
@@ -608,7 +609,11 @@ function printHelp() {
     '  node scripts/github-pull.mjs --status',
     '  node scripts/github-pull.mjs --once --dry-run',
     '  node scripts/github-pull.mjs --once',
-    '  node scripts/github-pull.mjs --watch'
+    '  node scripts/github-pull.mjs --watch',
+    '  node scripts/github-pull.mjs --once --with-react',
+    '',
+    'Options:',
+    '  --with-react    Manually apply Codex-webui-react/** from GitHub.'
   ].join('\n'));
 }
 
@@ -677,6 +682,7 @@ async function main() {
     return;
   }
   const { syncConfig, pull } = loadPullConfig(root);
+  if (args.withReact) syncConfig.reactSyncEnabled = true;
   if (args.status) {
     const result = await runStatus(root, syncConfig, pull);
     if (args.json) console.log(JSON.stringify(result, null, 2));

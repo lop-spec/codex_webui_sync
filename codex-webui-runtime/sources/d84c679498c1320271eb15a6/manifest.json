@@ -13,7 +13,7 @@
     "workspacePath": "C:\\Users\\lop\\Documents\\Codex\\github-ui",
     "scope": "source-rules-skills"
   },
-  "generatedAt": "2026-07-07T06:09:31.843Z",
+  "generatedAt": "2026-07-07T06:09:48.913Z",
   "fullSnapshot": true,
   "mergePolicy": {
     "webui-source": "remote-newer-wins-then-verify",
@@ -782,8 +782,8 @@
     },
     {
       "path": "scripts/github-pull.mjs",
-      "sha": "29f3bbcbdc46d0ca948fbd42204153f33cc07db3",
-      "size": 26812,
+      "sha": "352f39356f8f23de240128ceaf6c39d970d593f5",
+      "size": 27103,
       "category": "runtime-script"
     },
     {
