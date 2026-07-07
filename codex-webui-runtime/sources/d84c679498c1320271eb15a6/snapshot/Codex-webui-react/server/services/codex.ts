@@ -245,8 +245,8 @@ export class CodexService extends EventEmitter {
     const turnId = typeof payload.turnId === 'string' && payload.turnId ? payload.turnId : this.activeTurnId;
     return {
       ...payload,
-      resume_path: typeof payload.resume_path === 'string' ? payload.resume_path : resumePath,
-      sessionPath: typeof payload.sessionPath === 'string' ? payload.sessionPath : resumePath,
+      resume_path: resumePath,
+      sessionPath: resumePath,
       threadId: threadId || null,
       turnId: turnId || null
     };
