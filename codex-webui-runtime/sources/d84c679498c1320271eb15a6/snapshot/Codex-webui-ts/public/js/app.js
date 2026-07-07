@@ -114,6 +114,9 @@ const CLIENT_BUILD = '20260707-local-dir-open-v4';
       const sideFilter = $('sideFilter');
       const queuePanel = $('queuePanel');
       const userInputPrompt = $('userInputPrompt');
+      const settingsNavItems = [...document.querySelectorAll('.settings-nav-item')];
+      const settingsSections = [...document.querySelectorAll('.settings-section')];
+      const organizeSessionTitlesBtn = $('organizeSessionTitles');
       function safeLocalGet(key, fallback = '') {
         try {
           const value = localStorage.getItem(key);
