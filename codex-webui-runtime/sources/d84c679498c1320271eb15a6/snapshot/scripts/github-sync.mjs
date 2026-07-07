@@ -1032,6 +1032,7 @@ function parseArgs(argv = process.argv.slice(2)) {
     json: false,
     noInitial: false,
     tokenStdin: false,
+    withReact: false,
     message: ''
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -1043,6 +1044,7 @@ function parseArgs(argv = process.argv.slice(2)) {
     else if (arg === '--json') out.json = true;
     else if (arg === '--no-initial') out.noInitial = true;
     else if (arg === '--token-stdin') out.tokenStdin = true;
+    else if (arg === '--with-react') out.withReact = true;
     else if (arg === '--message') {
       out.message = argv[index + 1] || '';
       index += 1;
@@ -1068,9 +1070,14 @@ function printHelp() {
     '  node scripts/github-sync.mjs --once',
     '  node scripts/github-sync.mjs --watch',
     '  node scripts/github-sync.mjs --once --token-stdin',
+    '  node scripts/github-sync.mjs --once --with-react',
+    '',
+    'Options:',
+    '  --with-react    Manually include Codex-webui-react/** for this run.',
     '',
     'Environment:',
     '  GITHUB_SYNC_OWNER, GITHUB_SYNC_REPO, GITHUB_SYNC_BRANCH',
+    '  GITHUB_SYNC_REACT=1 to include Codex-webui-react/** without CLI flags',
     '  GITHUB_SYNC_TOKEN',
     '  GITHUB_SYNC_AUTHOR_NAME, GITHUB_SYNC_AUTHOR_EMAIL'
   ].join('\n'));
@@ -1094,6 +1101,7 @@ function statusReport(rootDir, config) {
     tokenConfigured: Boolean(config.token),
     source,
     runtimeRoot: runtimeRootPath(config),
+    reactSyncEnabled: Boolean(config.reactSyncEnabled),
     sourceRoot: sourceRuntimeRoot(config, source),
     snapshotRoot: sourceSnapshotRoot(config, source),
     createRepo: Boolean(config.createRepo),

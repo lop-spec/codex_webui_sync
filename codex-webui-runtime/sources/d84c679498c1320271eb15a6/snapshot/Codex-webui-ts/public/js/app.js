@@ -3217,6 +3217,7 @@ const CLIENT_BUILD = '20260707-question-jump-v1';
           updateTranscriptPageState(data, path);
           renderTranscriptHistoryLoader();
           timeline.scrollTop = previousTop + (timeline.scrollHeight - previousHeight);
+          scheduleQuestionJumpUpdate();
           updateTokenStats();
           exposeDebugState();
         } catch (error) {
