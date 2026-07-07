@@ -2309,8 +2309,7 @@ const CLIENT_BUILD = '20260707-local-dir-open-v4';
           return;
         }
         if (item.action === 'openModel' || item.action === 'openSettings') {
-          await loadConfig();
-          openModal('settingsModal');
+          await openSettingsPage('model');
           setTimeout(() => $('cfgModel').focus(), 0);
           return;
         }
