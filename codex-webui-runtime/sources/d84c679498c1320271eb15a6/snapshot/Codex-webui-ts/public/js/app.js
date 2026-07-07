@@ -362,6 +362,8 @@ const CLIENT_BUILD = '20260707-local-dir-open-v4';
           composerRunState: composerRunState ? composerRunState.textContent : '',
           composerRunStateMode: composerRunState ? composerRunState.dataset.state : '',
           settingsSections: document.querySelectorAll('.settings-section').length,
+          settingsNavItems: document.querySelectorAll('.settings-nav-item').length,
+          activeSettingsSection: document.querySelector('.settings-nav-item-active')?.dataset.settingsTarget || '',
           settingsOptions: document.querySelectorAll('.settings-field input, .settings-field select, .settings-field textarea').length,
           appNotifications: appNotifications.length,
           terminalSessions: terminalState.sessions.length,
