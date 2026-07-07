@@ -7,6 +7,7 @@
   "debounceMs": 1500,
   "maxFileBytes": 2097152,
   "maxChangesPerCommit": 800,
+  "reactSyncEnabled": false,
   "include": [
     ".gitignore",
     "AGENTS.md",
