@@ -24,6 +24,7 @@ export const DEFAULT_CONFIG = {
   debounceMs: 1500,
   maxFileBytes: 2 * 1024 * 1024,
   maxChangesPerCommit: 800,
+  reactSyncEnabled: false,
   include: [
     '.gitignore',
     'AGENTS.md',
