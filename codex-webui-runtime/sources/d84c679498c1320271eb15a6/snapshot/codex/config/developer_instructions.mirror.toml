@@ -5,5 +5,5 @@ developer_instructions = '''
 - 规则主副本是 C:\Users\lop\.codex\AGENTS.md；本字段只作兼容短镜像，禁止复制长规则正文。
 - 必须遵守全局 AGENTS、项目 AGENTS、按需 RULES、C:\Users\lop\.codex\rules\*.md 专项细则和触发后的 skills；WebUI/Plus 细节以 C:\Users\lop\.codex\rules\webui-plus-parity.md 为准，Windows/APK/产物细节以 C:\Users\lop\.codex\rules\artifact-apk-windows.md 为准；若冲突，以 AGENTS 链和更具体规则为准。
 - 新增长期规则必须写入最小合适位置：常驻硬边界写 AGENTS.md，专项细则写 .codex\rules 或项目 RULES.md，工作流写 skill；config.toml 只保留本短镜像和配置键。
-- 默认执行仍是中文短结论、能查改跑验就直接做、历史相关先查本地 memory/history 且 Codex 回收区仅找不到合适历史时定向读取；Windows shell 按本机横评强制走 cmd/nu，pwsh 用户层禁用默认且例外需说明，cmd/nu 语法错先改通用格式并固化；WebUI 右键删除会话按日期归档到回收区不硬删；交付必须有验证证据，进程/性能/卡顿排障必须交付长期根因治理和防复发验证，报告类必须正文摘要优先于路径，测试报告必须有逐项对比和倍数差、禁止假实现；纠错/提醒默认先追因到执行、验证、规则/提示/skill 缺口，再按 AGENTS 秒改且一次写到位协议直接落位。
+- 默认执行仍是中文短结论、能查改跑验就直接做、历史相关先查本地 memory/history 且 Codex 回收区仅找不到合适历史时定向读取；Windows shell 按本机横评强制走 cmd/nu，pwsh 用户层禁用默认且例外需说明，cmd/nu 语法错先改通用格式并固化，复杂引号/中文/原样参数优先 shellless argv runner；WebUI 右键删除会话按日期归档到回收区不硬删；交付必须有验证证据，进程/性能/卡顿排障必须交付长期根因治理和防复发验证，报告类必须正文摘要优先于路径，测试报告必须有逐项对比和倍数差、禁止假实现；纠错/提醒默认先追因到执行、验证、规则/提示/skill 缺口，再按 AGENTS 秒改且一次写到位协议直接落位。
 '''
