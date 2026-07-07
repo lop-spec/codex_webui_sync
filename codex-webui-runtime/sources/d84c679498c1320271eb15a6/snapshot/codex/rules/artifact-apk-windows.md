@@ -6,10 +6,10 @@
 
 - 按 2026-07-04 本机横评强制路由 shell：`cmd` 负责 shell 启动/短命令、固定字符串搜索、读文本、端口监听探测、小目录复制删除、`rg/curl/robocopy/where` 等简单外部 exe；`nu` 负责工具定位、大目录枚举、JSON/table 解析筛选、进程列表过滤、HTTP 响应解析和结构化管道。
 - 用户层禁用 `pwsh` 作为默认执行壳；除非上级安全规则、Windows 对象模型、注册表/服务/WMI/CIM、锁定文件/安全递归移动删除，或 `cmd/nu` 已验证无法表达，否则不得主动改用 `pwsh`。例外使用必须说明原因。
-- 若任务目标是彻底避开 `cmd/pwsh/nu/nush` 的引号、转义或中文解析层，首选 shellless argv：`node C:\Users\lop\.codex\tools\run-argv.mjs --spec spec.json`。该工具用 Node `spawn(..., {shell:false})` 走 Windows CreateProcessW/argv，目标命令参数不经过任何 shell 解释。
-- shellless argv 适用：目标是外部 `.exe`、真实 JS/Python 入口、参数含空格/中文/引号/反引号/`&|()<>%!`、JSON/HTML/Markdown/正则、长参数、需要原样输出、或之前在 `cmd/nu` 中出现拆参/乱码/转义失败。此时不要再尝试二次堆 shell 转义。
-- shellless argv 不适用：`dir/copy/set/for` 等 shell 内建和 `.cmd/.bat` 本身。处理方式是改用 Node/Python 文件 API、`robocopy`/`reg.exe`/`sc.exe`/`tasklist.exe` 等真实 EXE、或定位 npm/工具背后的真实 `.js`/`.exe` 入口；确实必须跑 `.cmd/.bat` 时才回到显式 shell 例外。
-- `run-argv.mjs` spec 必须把 `file` 和 `args` 分开写，复杂内容放 JSON 文件、stdin 文件或参数文件；调用层只传简单 spec 路径。若 spec 路径本身也复杂，放到无空格固定目录如 `C:\Users\lop\.codex\tmp\argv\`。
+- 若任务目标是彻底避开 `cmd/pwsh/nu/nush` 的引号、转义或中文解析层，首选 `C:\Users\lop\.codex\tools\winops\winops.exe <job.json>`；复杂内容只写 UTF-8 job 文件，主结果写 result.json，stdout 只作为结果路径提示。
+- `winops.exe` 适用：外部进程 argv 保真、文件读写/复制/移动/删除/hash、打开文件/目录/URL、注册表、服务、进程、端口、文本搜索替换、JSON 读写选择、zip/unzip；参数含空格/中文/引号/反引号/`&|()<>%!`、JSON/HTML/Markdown/正则、长参数、需要原样输出、或之前在 `cmd/nu` 中出现拆参/乱码/转义失败时，不再二次堆 shell 转义。
+- `run-argv.mjs` 仅作为旧兼容；新任务默认用 `winops.exe`。`.cmd/.bat` 默认拒绝，必须定位真实 `.exe/.js` 入口；确实必须跑 `.cmd/.bat` 时才回到显式 shell 例外并记录原因。
+- `winops.exe` job 必须把 `op`、`input`、路径和参数分开写；破坏性操作默认 dry-run，实际执行必须同时设置 `dryRun:false` 和 `confirm:true`；删除默认进 `%USERPROFILE%\.codex\quarantine\winops`，不得默认硬删。
 - 总原则：`cmd` 支持引号、反引号、空格和转义；失败默认是 Codex/JSON/PowerShell/Node/Markdown/正则等外层先吃掉字符，或没有按 cmd 语法生成，禁止把问题归因给 `cmd` 本身。
 - 统一转换顺序：先判断能否用 argv/参数数组/直接 EXE 入口，能用就不要拼 shell 字符串；必须走 `cmd` 时先写目标 cmd 标准形态，再只给当前执行器补一层外层引号；仍不稳定就生成临时 `.cmd`/参数文件/输入文件后用 `cmd` 执行，这仍然是 cmd 方案，不是绕开 cmd。
 - `cmd` 标准入口优先用 `cmd.exe /d /q /v:off /s /c "..."`；程序路径含空格时标准形态是 `cmd.exe /d /q /v:off /s /c ""C:\Program Files\Tool\tool.exe" "arg with space""`。在 `exec_command` 等外层还会解析引号的场景，先保留这个目标形态，再按外层要求把内层 `"` 成对加倍或改临时 `.cmd`，不要凭感觉混写。

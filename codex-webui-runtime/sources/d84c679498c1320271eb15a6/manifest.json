@@ -13,7 +13,7 @@
     "workspacePath": "C:\\Users\\lop\\Documents\\Codex\\github-ui",
     "scope": "source-rules-skills"
   },
-  "generatedAt": "2026-07-07T07:50:20.312Z",
+  "generatedAt": "2026-07-07T07:50:39.440Z",
   "fullSnapshot": true,
   "mergePolicy": {
     "webui-source": "remote-newer-wins-then-verify",
@@ -596,8 +596,8 @@
     },
     {
       "path": "codex/rules/artifact-apk-windows.md",
-      "sha": "d7b278ebbc92feb012a15f37fcb08b51917494eb",
-      "size": 9137,
+      "sha": "411d4969eac99254eb80e5174b9f9fc2342ab8c4",
+      "size": 9102,
       "category": "rules"
     },
     {
