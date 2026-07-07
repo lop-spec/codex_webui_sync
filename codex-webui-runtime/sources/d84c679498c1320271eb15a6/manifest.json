@@ -13,7 +13,7 @@
     "workspacePath": "C:\\Users\\lop\\Documents\\Codex\\github-ui",
     "scope": "source-rules-skills"
   },
-  "generatedAt": "2026-07-07T06:09:48.913Z",
+  "generatedAt": "2026-07-07T06:10:00.686Z",
   "fullSnapshot": true,
   "mergePolicy": {
     "webui-source": "remote-newer-wins-then-verify",
@@ -800,8 +800,8 @@
     },
     {
       "path": "scripts/parity-watch.mjs",
-      "sha": "e60c497cda9445c12739028ae86964a9d3f415d0",
-      "size": 2469,
+      "sha": "d44c6ba7701bc95ef791e9106307335946538c82",
+      "size": 2724,
       "category": "runtime-script"
     },
     {

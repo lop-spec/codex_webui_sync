@@ -5,7 +5,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
-const full = process.argv.includes('--full');
+const args = new Set(process.argv.slice(2));
+const full = args.has('--full');
+const withReact = args.has('--with-react');
 const checkScript = path.join(root, 'scripts', 'parity-check.mjs');
 const debounceMs = 700;
 const watchTargets = [
@@ -34,6 +36,11 @@ let lastChange = 'initial';
 
 function stamp() {
   return new Date().toLocaleTimeString('zh-CN', { hour12: false });
+}
+
+if (!withReact) {
+  console.log(`[${stamp()}] WebUI <-> React parity watch is disabled by default. Use --with-react only when a manual watcher is needed.`);
+  process.exit(0);
 }
 
 function schedule(change) {
